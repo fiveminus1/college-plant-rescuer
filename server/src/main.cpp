@@ -7,8 +7,8 @@
 const char* SSID = "Velocity Wi-Fi";
 const char* PASSWORD = "nrurnzni";
 
-const int dryCal = 3650;
-const int wetCal = 800;
+const int dryCal = 3500;
+const int wetCal = 1400;
 
 
 AsyncWebServer server(80);

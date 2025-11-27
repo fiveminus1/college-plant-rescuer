@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Flower2 } from 'lucide-react-native';
 import * as Progress from 'react-native-progress';
@@ -10,7 +10,7 @@ interface MoistureData {
   percent: number;
 }
 
-const API_URL = 'https://mocki.io/v1/bbddd701-942d-4a96-a1b6-178e1f759f21';
+const API_URL = 'http://10.5.170.54/moisture';
 
 export default function HomeScreen() {
   const [moistureValue, setMoistureValue] = useState<number>(0);
@@ -18,29 +18,29 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchMoistureData = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(API_URL);
-        const data = await res.json() as MoistureData;
-        setMoistureValue(data.raw);
-        setMoisturePercent(data.percent);
-      } catch (e) {
-        if (e instanceof Error){
-          setError(e.message);
-        }
-        else{
-          throw e;
-        }
-      } finally {
-        setLoading(false);
+  const fetchMoistureData = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(API_URL);
+      const data = await res.json() as MoistureData;
+      setMoistureValue(data.raw);
+      setMoisturePercent(data.percent);
+    } catch (e) {
+      if (e instanceof Error){
+        setError(e.message);
       }
+      else{
+        throw e;
+      }
+    } finally {
+      setLoading(false);
     }
+  }
 
+  useEffect(() => {
     fetchMoistureData();
-    
   }, []);
+
   if(loading){
     return (
       <SafeAreaView>
@@ -62,12 +62,24 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <Flower2 size={150} style={{ marginBottom: 20 }}/>
       
-      <Progress.Bar progress={moisturePercent / 100} width={200}/>
+      <Progress.Bar progress={moisturePercent / 100} width={200} color={
+        moisturePercent < 30 ? 'red' : moisturePercent > 50 ? '#019CE0' : 'orange'
+      }/>
+
+      {moisturePercent < 30 && (
+        <Text style={{ color: 'red', fontSize: 20, fontWeight: 'bold', marginTop: 10 }}>
+          Water soon
+        </Text>
+      )}
+
       <Text style={{ fontSize: 24, fontWeight: 'bold', marginTop: 30 }}>
         Current moisture data: {moistureValue} 
       </Text>
 
-      
+      <TouchableOpacity style={styles.button} onPress={fetchMoistureData}>
+        <Text style={styles.buttonText}>Fetch moisture data</Text>
+
+      </TouchableOpacity>
       
     </SafeAreaView>
   );
@@ -78,5 +90,17 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  }
+  },
+  button: {
+    marginTop: 30,
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
 })
