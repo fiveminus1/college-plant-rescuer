@@ -4,13 +4,14 @@ import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface MoistureData {
-  rawValue: number;
+  raw: number;
+  percent: number;
 }
 
-const API_URL = '';
+const API_URL = 'https://mocki.io/v1/bbddd701-942d-4a96-a1b6-178e1f759f21';
 
 export default function HomeScreen() {
-  const [moistureData, setMoistureData] = useState(0);
+  const [moistureValue, setMoistureValue] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -19,8 +20,8 @@ export default function HomeScreen() {
       try {
         setLoading(true);
         const res = await fetch(API_URL);
-        const data = await res.json();
-        setMoistureData(data);
+        const data = await res.json() as MoistureData;
+        setMoistureValue(data.raw);
       } catch (e) {
         if (e instanceof Error){
           setError(e.message);
@@ -56,7 +57,8 @@ export default function HomeScreen() {
   return (
     <SafeAreaView >
       <Text style={{ fontSize: 24, fontWeight: 'bold' }}>
-        Current moisture data:
+        Current moisture data: 
+        Value: {moistureValue} 
       </Text>
       
     </SafeAreaView>

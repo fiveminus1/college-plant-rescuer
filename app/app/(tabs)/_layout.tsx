@@ -8,14 +8,21 @@ import { Users, Sprout, Sun } from 'lucide-react-native';
 
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
+        tabBarActiveTintColor: Colors.background,
+        tabBarInactiveTintColor: Colors.text,
+        headerShown: true,
         tabBarButton: HapticTab,
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          backgroundColor: Colors.tabBarBackground,
+        },
+        tabBarItemStyle: {
+          paddingTop: 12,
+        }
       }}>
       <Tabs.Screen
         name="friends"
