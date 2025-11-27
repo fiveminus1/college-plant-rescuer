@@ -3,8 +3,7 @@ import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Users, Sprout, Sun } from 'lucide-react-native';
+import { Users, Sprout, Sun, Leaf, User } from 'lucide-react-native';
 
 
 export default function TabLayout() {
@@ -15,6 +14,18 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors.background,
         tabBarInactiveTintColor: Colors.text,
         headerShown: true,
+        headerTitle: () => null,
+        headerLeft: () => (
+          <Leaf size={26} style={{ 
+            marginLeft: 32,
+            marginBottom: 16, }}/>
+        ),
+        headerRight: () => (
+          <User size={26} style={{ 
+            marginRight: 32,
+            marginBottom: 16, }}/>
+        ),
+        headerStyle: { backgroundColor: Colors.topBarBackground },
         tabBarButton: HapticTab,
         tabBarShowLabel: false,
         tabBarStyle: {

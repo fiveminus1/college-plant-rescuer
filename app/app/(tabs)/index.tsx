@@ -1,4 +1,3 @@
-import { Heading1 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -56,6 +55,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView >
+      {/* <TopBar /> */}
       <Text style={{ fontSize: 24, fontWeight: 'bold' }}>
         Current moisture data: 
         Value: {moistureValue} 
