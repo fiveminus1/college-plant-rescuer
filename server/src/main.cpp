@@ -2,6 +2,7 @@
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
+#include <BLE2902.h>
 
 #define SENSOR_PIN 36
 #define LED_PIN 2
@@ -35,7 +36,6 @@ class LEDCallbacks : public BLECharacteristicCallbacks {
   void onWrite(BLECharacteristic *characteristic) {
     std::string value = characteristic->getValue();
     if(!value.length()) return;
-
     if(value == "1"){
       digitalWrite(LED_PIN, HIGH);
     } else if (value == "0"){
@@ -60,8 +60,10 @@ void setup(){
 
     moistureChar = service->createCharacteristic(
       MOISTURE_UUID,
+      BLECharacteristic::PROPERTY_READ |
       BLECharacteristic::PROPERTY_NOTIFY
     );
+    moistureChar->addDescriptor(new BLE2902());
 
     ledChar = service->createCharacteristic(
       LED_UUID,
