@@ -88,6 +88,12 @@ void loop(){
     int percent = map(raw, dryCal, wetCal, 0, 100);
     percent = constrain(percent, 0, 100);
 
+    if (percent < 30){
+      digitalWrite(LED_PIN, HIGH);
+    } else {
+      digitalWrite(LED_PIN, LOW);
+    }
+    
     char buffer[8];
     sprintf(buffer, "%d", percent);
     moistureChar->setValue(buffer);
