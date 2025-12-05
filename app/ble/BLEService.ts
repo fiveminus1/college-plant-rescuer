@@ -4,7 +4,7 @@ const SERVICE_UUID = "12345678-1234-1234-1234-1234567890ab";
 const MOISTURE_UUID = "12345678-1234-1234-1234-1234567890ac";
 const LED_UUID = "12345678-1234-1234-1234-1234567890ad";
 
-const deviceName = "ESP32-Moisture"
+const deviceName = "ESP32-MoistureSensor"
 
 class BLEService {
   manager: BleManager;
