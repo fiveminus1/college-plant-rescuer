@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
@@ -7,6 +7,7 @@ import { Users, Sprout, Sun, Leaf, User } from 'lucide-react-native';
 
 
 export default function TabLayout() {
+  const router = useRouter();
 
   return (
     <Tabs
@@ -16,9 +17,11 @@ export default function TabLayout() {
         headerShown: true,
         headerTitle: () => null,
         headerLeft: () => (
-          <Leaf size={26} style={{ 
-            marginLeft: 32,
-            marginBottom: 16, }}/>
+          <Leaf 
+            size={26} 
+            style={{ marginLeft: 32, marginBottom: 16, }}
+            onPress={() => router.push("/plant-selector")}
+          />
         ),
         headerRight: () => (
           <User size={26} style={{ 
