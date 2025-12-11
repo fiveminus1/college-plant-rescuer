@@ -1,6 +1,6 @@
 import { Tabs, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { HapticTab } from '@/components/haptic-tab';
 import { Colors } from '@/constants/theme';
 import { Users, Sprout, Sun, Leaf, User } from 'lucide-react-native';
@@ -24,16 +24,26 @@ export default function TabLayout() {
         headerTitle: () => null,
 
         headerLeft: () => (
-          <View>
+          <View style={{ marginLeft: 24 }}>
             <Menu
+              key={menuVisible ? 'open' : 'closed'}
               visible={menuVisible}
               onDismiss={() => setMenuVisible(false)}
+              anchorPosition='bottom'
               anchor={
-                <Leaf
-                  size={26}
-                  style={{ marginLeft: 32, marginBottom: 16 }}
+                <Pressable
                   onPress={() => setMenuVisible(true)}
-                />
+                  style={{ 
+                    width: 40,
+                    height: 40,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Leaf size={26} />
+
+                </Pressable>
+                
               }
             >
               {plants.map((plant) => (
