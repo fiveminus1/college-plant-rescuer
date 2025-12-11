@@ -96,7 +96,7 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="explore"
+        name="streaks"
         options={{
           title: 'Streaks',
           tabBarIcon: ({ color }) => <Sun size={28} color={color} />,

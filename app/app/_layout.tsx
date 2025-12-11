@@ -5,6 +5,7 @@
   import { PaperProvider } from 'react-native-paper';
 
   import { PlantsProvider } from '../context/PlantsContext';
+import { StreaksProvider } from '@/context/StreaksContext';
 
   export const unstable_settings = {
     anchor: '(tabs)',
@@ -15,13 +16,15 @@
       <PaperProvider>
 
         <PlantsProvider>
-          <ThemeProvider value={DefaultTheme}>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-            </Stack>
-            <StatusBar style="auto" />
-          </ThemeProvider>
+          <StreaksProvider>
+            <ThemeProvider value={DefaultTheme}>
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+              </Stack>
+              <StatusBar style="auto" />
+            </ThemeProvider>
+          </StreaksProvider>
         </PlantsProvider>
       </PaperProvider>
 

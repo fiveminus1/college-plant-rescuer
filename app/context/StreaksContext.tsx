@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { calculateStreak, getTodayString } from "@/app/helpers/streaks";
 
 const STORAGE_KEY = '@plant_waterings';
 
@@ -49,15 +50,20 @@ export function StreaksProvider({ children }: { children: React.ReactNode }) {
             console.error('Failed to save waterings:', error);
         }
     }
-    
-    const getTodayString = () => {
-        return new Date().toISOString().split('T')[0];
-    };
+
+    useEffect(() => {
+        loadWaterings();
+    }, []);
+
+    useEffect(() => {
+        if (loaded)
+            saveWaterings();
+    }, [waterings, loaded]);
+
 
     const recordWatering = async (plantId: string) => {
         const today = getTodayString();
 
-        // check if watered today
         const alreadyWatered = waterings.some(
             w => w.plantId === plantId && w.date === today
         );
@@ -71,89 +77,17 @@ export function StreaksProvider({ children }: { children: React.ReactNode }) {
         const today = getTodayString();
         return waterings.some(w => w.plantId === plantId && w.date === today);
     };
-
-    const calculateStreak = (plantId: string): PlantStreak => {
-        const plantWaterings = waterings
-            .filter(w => w.plantId === plantId)
-            .map(w => w.date)
-            .sort()
-            .reverse(); // Most recent first
-
-        if (plantWaterings.length === 0) {
-            return {
-                plantId,
-                currentStreak: 0,
-                longestStreak: 0,
-                lastWatered: null,
-                totalWaterings: 0,
-            };
-        }
-
-        const uniqueDates = [...new Set(plantWaterings)];
-        const lastWatered = uniqueDates[0];
-
-        // Calculate current streak
-        let currentStreak = 0;
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        for (let i = 0; i < uniqueDates.length; i++) {
-            const expectedDate = new Date(today);
-            expectedDate.setDate(expectedDate.getDate() - i);
-            const expectedDateStr = expectedDate.toISOString().split('T')[0];
-
-            if (uniqueDates[i] === expectedDateStr) {
-                currentStreak++;
-            } else {
-                break;
-            }
-        }
-
-        // Calculate longest streak
-        let longestStreak = 0;
-        let tempStreak = 1;
-
-        for (let i = 0; i < uniqueDates.length - 1; i++) {
-            const currentDate = new Date(uniqueDates[i]);
-            const nextDate = new Date(uniqueDates[i + 1]);
-            const diffDays = Math.floor((currentDate.getTime() - nextDate.getTime()) / (1000 * 60 * 60 * 24));
-
-            if (diffDays === 1) {
-                tempStreak++;
-            } else {
-                longestStreak = Math.max(longestStreak, tempStreak);
-                tempStreak = 1;
-            }
-        }
-        longestStreak = Math.max(longestStreak, tempStreak);
-
-        return {
-            plantId,
-            currentStreak,
-            longestStreak,
-            lastWatered,
-            totalWaterings: plantWaterings.length,
-        };
-    };
+   
 
     const getPlantStreak = (plantId: string): PlantStreak => {
-        return calculateStreak(plantId);
+        return calculateStreak(waterings, plantId);
     };
 
     const getAllStreaks = (): PlantStreak[] => {
         const plantIds = [...new Set(waterings.map(w => w.plantId))];
-        return plantIds.map(id => calculateStreak(id));
+        return plantIds.map(id => calculateStreak(waterings, id));
     };
 
-
-    useEffect(() => {
-        loadWaterings();
-    }, []);
-
-    useEffect(() => {
-        if (loaded)
-            saveWaterings();
-    }, [waterings, loaded]);
 
     return (
         <StreaksContext.Provider
