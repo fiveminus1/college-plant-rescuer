@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Flower2 } from 'lucide-react-native';
+import { useEffect } from 'react';
+import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import * as Progress from 'react-native-progress';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { bleService } from '../../ble/BLEService';
-import { usePlants } from '../context/PlantsContext';
+import { usePlants } from '../../context/PlantsContext';
 
 
 export default function HomeScreen() {

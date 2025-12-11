@@ -1,13 +1,19 @@
 import { Tabs, useRouter } from 'expo-router';
-import React from 'react';
-
+import React, { useState } from 'react';
+import { View } from 'react-native';
 import { HapticTab } from '@/components/haptic-tab';
 import { Colors } from '@/constants/theme';
 import { Users, Sprout, Sun, Leaf, User } from 'lucide-react-native';
+import { Menu } from 'react-native-paper';
+import { usePlants } from '@/context/PlantsContext';
 
 
 export default function TabLayout() {
   const router = useRouter();
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const { plants, selectedPlant, selectPlant } = usePlants();
+
 
   return (
     <Tabs
@@ -16,12 +22,37 @@ export default function TabLayout() {
         tabBarInactiveTintColor: Colors.text,
         headerShown: true,
         headerTitle: () => null,
+
         headerLeft: () => (
-          <Leaf 
-            size={26} 
-            style={{ marginLeft: 32, marginBottom: 16, }}
-            onPress={() => router.push("/plant-selector")}
-          />
+          <View>
+            <Menu
+              visible={menuVisible}
+              onDismiss={() => setMenuVisible(false)}
+              anchor={
+                <Leaf
+                  size={26}
+                  style={{ marginLeft: 32, marginBottom: 16 }}
+                  onPress={() => setMenuVisible(true)}
+                />
+              }
+            >
+              {plants.map((plant) => (
+                <Menu.Item
+                  key={plant.id}
+                  title={plant.name}
+                  leadingIcon={() =>
+                    selectedPlant?.id === plant.id ? (
+                      <Sprout size={18} color={Colors.icon} />
+                    ) : null
+                  }
+                  onPress={() => {
+                    selectPlant(plant.id);
+                    setMenuVisible(false);
+                  }}
+                />
+              ))}
+            </Menu>
+          </View>
         ),
         headerRight: () => (
           <User size={26} style={{ 

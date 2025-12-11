@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
-import { usePlants } from "./context/PlantsContext";
 import { Text, TouchableOpacity, View } from "react-native";
+import { usePlants } from "../context/PlantsContext";
 
 const PlantSelector = () => {
   const { plants, selectPlant } = usePlants();
