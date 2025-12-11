@@ -1,17 +1,20 @@
 import { Flower2 } from 'lucide-react-native';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import * as Progress from 'react-native-progress';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { bleService } from '../../ble/BLEService';
 import { usePlants } from '../../context/PlantsContext';
+import { useStreaks } from '@/context/StreaksContext';
 
+const MOISTURE_THRESHOLD = 50;
 
 export default function HomeScreen() {
   const { selectedPlant, updateMoisture } = usePlants();
-
+  const { recordWatering, hasWateredToday } = useStreaks();
   const moisture = selectedPlant?.moisture ?? 0;
-  // const [connected, setConnected] = useState(false);
+
+  const hasRecordedTodayRef = useRef(false);
 
   useEffect(() => {
     if(!selectedPlant) return;
@@ -27,6 +30,24 @@ export default function HomeScreen() {
     return () => bleService.destroy();
   }, [selectedPlant, updateMoisture, selectedPlant?.id]);
 
+  useEffect(() => {
+    if(!selectedPlant) return;
+
+    const alreadyWatered = hasWateredToday(selectedPlant.id);
+
+    if (
+      moisture >= MOISTURE_THRESHOLD &&
+      !alreadyWatered &&
+      !hasRecordedTodayRef.current
+    ) {
+      recordWatering(selectedPlant.id);
+      hasRecordedTodayRef.current = true;
+    }
+
+    if(!alreadyWatered)
+      hasRecordedTodayRef.current = false;
+  }, [moisture, selectedPlant, recordWatering, hasWateredToday]);
+
   if(!selectedPlant){
     return (
       <SafeAreaView style={styles.container}>
@@ -38,6 +59,12 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {hasWateredToday(selectedPlant.id) && (
+        <Text style={{ color: '#4CAF50', fontSize: 18, fontWeight: 'bold', marginTop: 10 }}>
+          ✓ Watered today
+        </Text>
+      )}
+      
       <Text style={{ fontSize: 28, fontWeight: 'bold', marginBottom: 20 }}>
         {selectedPlant.name}
       </Text>
@@ -54,9 +81,12 @@ export default function HomeScreen() {
           Water soon
         </Text>
       )}
+
       <Text style={{ fontSize: 24, fontWeight: 'bold', marginTop: 30 }}>
         Moisture: {moisture}% 
       </Text>
+
+      
 
 
       {/** @todo: not sure if we need to keep this? maybe at least move somewhere else */}
