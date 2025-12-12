@@ -1,4 +1,4 @@
-import { Flower2 } from 'lucide-react-native';
+import { Sprout, Flower2 } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import * as Progress from 'react-native-progress';
@@ -81,7 +81,13 @@ export default function HomeScreen() {
         {selectedPlant.name}
       </Text>
 
-      <Flower2 size={150}/>
+      {selectedPlant.type === 'Cactus' && (
+        <Sprout size={150} />
+      )}
+
+      {selectedPlant.type === 'Succulent' && (
+        <Flower2 size={150}/>
+      )}
 
       <Progress.Bar 
         progress={moisture / 100} 
