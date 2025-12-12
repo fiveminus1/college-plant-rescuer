@@ -65,11 +65,15 @@ export default function TabLayout() {
           </View>
         ),
         headerRight: () => (
-          <User size={26} style={{ 
-            marginRight: 32,
-            marginBottom: 16, }} 
+          <Pressable
             onPress={() => router.push('/profile')}   
-          />
+            style={{
+              marginRight: 24,
+              padding: 8,
+            }}
+          >
+            <User size={26} />
+          </Pressable>
         ),
         headerStyle: { backgroundColor: Colors.topBarBackground },
         tabBarButton: HapticTab,
