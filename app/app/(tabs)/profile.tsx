@@ -1,3 +1,4 @@
+import { Avatar } from "@/components/Avatar";
 import { PlantStreakCard } from "@/components/PlantStreakCard";
 import { Colors } from "@/constants/theme";
 import { usePlants } from "@/context/PlantsContext";
@@ -23,6 +24,10 @@ export default function ProfileScreen(){
         <SafeAreaView style={styles.container} edges={['bottom']}>
             <ScrollView contentContainerStyle={styles.content}>
                 <View style={styles.header}>
+                    <Avatar 
+                        name={user?.name || "S"}
+                        color={Colors.primary}
+                    />
                     <Text style={styles.userName}>{user?.name || "Placeholder Name"}</Text>
                 </View>
 
@@ -63,22 +68,9 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 20,
     marginBottom: 32,
-  },
-  avatarContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: Colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  avatarText: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: Colors.background,
   },
   userName: {
     fontSize: 32,
