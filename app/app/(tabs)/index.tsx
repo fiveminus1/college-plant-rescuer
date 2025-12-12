@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { bleService } from '../../ble/BLEService';
 import { usePlants } from '../../context/PlantsContext';
 import { useStreaks } from '@/context/StreaksContext';
+import { Subscription } from 'react-native-ble-plx';
 
 const MOISTURE_THRESHOLD = 50;
 
@@ -14,21 +15,32 @@ export default function HomeScreen() {
   const { recordWatering, hasWateredToday } = useStreaks();
   const moisture = selectedPlant?.moisture ?? 0;
 
+  const selectedPlantRef = useRef(selectedPlant);
   const hasRecordedTodayRef = useRef(false);
 
   useEffect(() => {
-    if(!selectedPlant) return;
+    selectedPlantRef.current = selectedPlant;
+  }, [selectedPlant]);
+
+  useEffect(() => {
+    let subscription: Subscription | undefined;
 
     bleService.scanForDevice(async (device) => {
       await bleService.connect(device);
 
-      bleService.subscribeToMoisture((percent) => {
-        updateMoisture(selectedPlant.id, percent);
+      subscription = bleService.subscribeToMoisture((percent) => {
+        const currentPlantRef = selectedPlantRef.current;
+        
+        if(currentPlantRef)
+          updateMoisture(currentPlantRef.id, percent);
       });
     });
 
-    return () => bleService.destroy();
-  }, [selectedPlant, updateMoisture, selectedPlant?.id]);
+    return () => {
+      subscription?.remove?.();
+      bleService.destroy();
+    };
+  }, []);
 
   useEffect(() => {
     if(!selectedPlant) return;

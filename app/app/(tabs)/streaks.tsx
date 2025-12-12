@@ -4,6 +4,7 @@ import { usePlants } from '@/context/PlantsContext';
 import { useStreaks } from '@/context/StreaksContext';
 import { Colors } from '@/constants/theme';
 import { Droplet, Flame, Trophy, Calendar } from 'lucide-react-native';
+import { PlantStreakCard } from '@/components/PlantStreakCard';
 
 export default function StreaksScreen() {
   const { plants } = usePlants();
@@ -26,62 +27,19 @@ export default function StreaksScreen() {
           const wateredToday = hasWateredToday(plant.id);
 
           return (
-            <View key={plant.id} style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.plantName}>{plant.name}</Text>
-                <Text style={styles.plantType}>{plant.type}</Text>
-              </View>
-
-              <View style={styles.statsContainer}>
-                <View style={styles.statItem}>
-                  <Flame size={20} color={Colors.accent} />
-                  <Text style={styles.statValue}>{streak.currentStreak}</Text>
-                  <Text style={styles.statLabel}>Current Streak</Text>
-                </View>
-
-                <View style={styles.statItem}>
-                  <Trophy size={20} color={Colors.secondary} />
-                  <Text style={styles.statValue}>{streak.longestStreak}</Text>
-                  <Text style={styles.statLabel}>Best Streak</Text>
-                </View>
-
-                <View style={styles.statItem}>
-                  <Calendar size={20} color={Colors.icon} />
-                  <Text style={styles.statValue}>{streak.totalWaterings}</Text>
-                  <Text style={styles.statLabel}>Total Waters</Text>
-                </View>
-              </View>
-
-              {streak.lastWatered && (
-                <Text style={styles.lastWatered}>
-                  Last watered: {new Date(streak.lastWatered).toLocaleDateString()}
-                </Text>
-              )}
-
-              <Pressable
-                style={[
-                  styles.waterButton,
-                  wateredToday && styles.waterButtonDisabled,
-                ]}
-                onPress={() => handleWaterPress(plant.id)}
-                disabled={wateredToday}
-              >
-                <Droplet
-                  size={20}
-                  color={wateredToday ? Colors.text : Colors.background}
-                  fill={wateredToday ? Colors.text : Colors.background}
-                />
-                <Text
-                  style={[
-                    styles.waterButtonText,
-                    wateredToday && styles.waterButtonTextDisabled,
-                  ]}
-                >
-                  {wateredToday ? 'Watered Today ✓' : 'Water Today'}
-                </Text>
-              </Pressable>
-            </View>
-          );
+            <PlantStreakCard 
+              key={plant.id}
+              plantName={plant.name}
+              plantType={plant.type}
+              currentStreak={streak.currentStreak}
+              longestStreak={streak.longestStreak}
+              totalWaterings={streak.totalWaterings}
+              lastWatered={streak.lastWatered}
+              wateredToday={wateredToday}
+              onWaterPress={() => handleWaterPress(plant.id)}
+              showWaterButton={true} 
+            />
+          )
         })}
 
         {plants.length === 0 && (

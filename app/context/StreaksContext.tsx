@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { calculateStreak, getTodayString } from "@/app/helpers/streaks";
+import { calculateStreak, getTodayString } from "../helpers/streaks";
 
 const STORAGE_KEY = '@plant_waterings';
 

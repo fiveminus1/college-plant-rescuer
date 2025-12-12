@@ -1,11 +1,11 @@
 import { Tabs, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { HapticTab } from '@/components/haptic-tab';
 import { Colors } from '@/constants/theme';
 import { Users, Sprout, Sun, Leaf, User } from 'lucide-react-native';
 import { Menu } from 'react-native-paper';
 import { usePlants } from '@/context/PlantsContext';
+import { HapticTab } from '@/components/haptic-tab';
 
 
 export default function TabLayout() {
