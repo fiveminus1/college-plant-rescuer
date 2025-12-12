@@ -24,7 +24,7 @@ export function UserProvider({ children}: { children: React.ReactNode }) {
 
     const loadUser = async () => {
         try {
-            setLoading(true)l
+            setLoading(true);
             const stored = await AsyncStorage.getItem(STORAGE_KEY);
             if(stored){
                 setUser(JSON.parse(stored));

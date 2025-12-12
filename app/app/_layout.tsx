@@ -6,6 +6,7 @@
 
   import { PlantsProvider } from '../context/PlantsContext';
 import { StreaksProvider } from '@/context/StreaksContext';
+import { UserProvider } from '@/context/UserContext';
 
   export const unstable_settings = {
     anchor: '(tabs)',
@@ -14,17 +15,18 @@ import { StreaksProvider } from '@/context/StreaksContext';
   export default function RootLayout() {
     return (
       <PaperProvider>
-
-        <PlantsProvider>
-          <StreaksProvider>
-            <ThemeProvider value={DefaultTheme}>
-              <Stack>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              </Stack>
-              <StatusBar style="auto" />
-            </ThemeProvider>
-          </StreaksProvider>
-        </PlantsProvider>
+        <UserProvider>
+          <PlantsProvider>
+            <StreaksProvider>
+              <ThemeProvider value={DefaultTheme}>
+                <Stack>
+                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                </Stack>
+                <StatusBar style="auto" />
+              </ThemeProvider>
+            </StreaksProvider>
+          </PlantsProvider> 
+        </UserProvider>
       </PaperProvider>
 
       

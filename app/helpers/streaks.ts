@@ -1,3 +1,4 @@
+import { usePlants } from "@/context/PlantsContext";
 import { PlantStreak, WateringRecord } from "@/context/StreaksContext";
 
 export const getTodayString = () => {
@@ -65,3 +66,13 @@ export const calculateStreak = (waterings: WateringRecord[], plantId: string): P
         totalWaterings: plantWaterings.length,
     };
 };
+
+export const getLongestStreak = (allStreaks: PlantStreak[]): PlantStreak => {
+    const longestStreak = allStreaks.reduce((max, streak) => {
+        return streak.longestStreak > max.value 
+            ? { value: streak.longestStreak, plantId: streak.plantId } 
+            : max;
+    }, { value: 0, plantId: '' });
+
+    return allStreaks.find(s => s.plantId === longestStreak.plantId)!;
+}

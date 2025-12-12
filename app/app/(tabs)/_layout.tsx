@@ -9,11 +9,11 @@ import { HapticTab } from '@/components/haptic-tab';
 
 
 export default function TabLayout() {
-  const router = useRouter();
   const [menuVisible, setMenuVisible] = useState(false);
 
   const { plants, selectedPlant, selectPlant } = usePlants();
 
+  const router = useRouter();
 
   return (
     <Tabs
@@ -67,7 +67,9 @@ export default function TabLayout() {
         headerRight: () => (
           <User size={26} style={{ 
             marginRight: 32,
-            marginBottom: 16, }}/>
+            marginBottom: 16, }} 
+            onPress={() => router.push('/profile')}   
+          />
         ),
         headerStyle: { backgroundColor: Colors.topBarBackground },
         tabBarButton: HapticTab,
