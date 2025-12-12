@@ -18,14 +18,14 @@ export const Colors = {
   tabIconSelected: tintColorLight,
   tabBarBackground: '#98C9A3',
   topBarBackground: '#82C8E5',
-  // dark: {
-  //   text: '#ECEDEE',
-  //   background: '#151718',
-  //   tint: tintColorDark,
-  //   icon: '#9BA1A6',
-  //   tabIconDefault: '#9BA1A6',
-  //   tabIconSelected: tintColorDark,
-  // },
+
+  textSecondary: '#687076',  
+  cardBackground: '#F5F5F5',   
+  border: '#E0E0E0',             
+  primary: tintColorLight,   
+  accent: '#FF6B6B',             
+  secondary: '#FFC107',          
+
 };
 
 export const Fonts = Platform.select({
