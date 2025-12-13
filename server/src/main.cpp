@@ -3,6 +3,11 @@
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include <BLE2902.h>
+#include <string>
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <WiFiClient.h>
+#include <ArduinoJson.h>
 
 #define SENSOR_PIN 36
 #define LED_PIN 2
@@ -11,8 +16,14 @@
 #define MOISTURE_UUID "12345678-1234-1234-1234-1234567890ac"
 #define LED_UUID "12345678-1234-1234-1234-1234567890ad"
 
-const char* SSID = "SierraSothoes_EXT";
-const char* PASSWORD = "coxuckers";
+// define SSID and password here, deleted for commits/submission
+
+
+String iothubName = "collegeplantrescuer";
+String deviceName = "esp32";
+String url = "https://" + iothubName + ".azure-devices.net/devices/" +
+deviceName + "/messages/events?api-version=2021-04-12";
+
 
 const int dryCal = 3500;
 const int wetCal = 1400;
@@ -52,6 +63,7 @@ void setup(){
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, LOW);
 
+    // establish BLE
     BLEDevice::init("ESP32-MoistureSensor");
     BLEServer *server = BLEDevice::createServer();
     server->setCallbacks(new MyServiceCallbacks());
@@ -82,6 +94,23 @@ void setup(){
 
     Serial.println("Moisture Sensor running on BLE");
 
+    // establish Wi-Fi
+    WiFi.mode(WIFI_STA);
+    delay(1000);
+    Serial.println();
+    Serial.println();
+    Serial.print("Connecting to ");
+    Serial.println(WIFI_SSID);
+
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print(".");
+      Serial.print(WiFi.status());
+    }
+
+    Serial.println("WiFi connected");
 }
 
 void loop(){
@@ -96,13 +125,36 @@ void loop(){
       digitalWrite(LED_PIN, LOW);
     }
     
-    char buffer[8];
-    sprintf(buffer, "%d", percent);
-    moistureChar->setValue(buffer);
+    char bleBuffer[8];
+    sprintf(bleBuffer, "%d", percent);
+    moistureChar->setValue(bleBuffer);
     moistureChar->notify();
 
     Serial.print("Moisture %: ");
     Serial.println(percent);
+
+    ArduinoJson::JsonDocument doc;
+    doc["rawMoisture"] = raw;
+    doc["percent"] = percent;
+
+    char moistureBuffer[256];
+    serializeJson(doc, moistureBuffer, sizeof(moistureBuffer));
+    
+    WiFiClientSecure client;
+    client.setCACert(root_ca);
+
+    HTTPClient http;
+    http.begin(client, url);
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("Authorization", SAS_TOKEN);
+    int httpCode = http.POST(moistureBuffer);
+
+    if (httpCode == 204) {
+    Serial.println("Moisture sent: " + String(moistureBuffer));
+    } else {
+    Serial.println("Failed to send moisture. HTTP code: " + String(httpCode));
+    }
+    http.end();
   }
 
   if(!deviceConnected && oldDeviceConnected){
@@ -111,5 +163,5 @@ void loop(){
   }
 
   oldDeviceConnected = deviceConnected;
-  delay(1000);
+  delay(5000); // @future todo: probably adjust this
 }
