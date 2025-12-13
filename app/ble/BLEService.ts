@@ -2,7 +2,6 @@ import { BleManager, Device } from "react-native-ble-plx";
 
 const SERVICE_UUID = "12345678-1234-1234-1234-1234567890ab";
 const MOISTURE_UUID = "12345678-1234-1234-1234-1234567890ac";
-const LED_UUID = "12345678-1234-1234-1234-1234567890ad";
 
 const deviceName = "ESP32-MoistureSensor"
 
@@ -58,17 +57,6 @@ class BLEService {
           callback(percent);
         }
       }
-    );
-  }
-
-
-  async writeLED(value: "0" | "1"){
-    if(!this.device) 
-      return;
-    await this.device.writeCharacteristicWithResponseForService(
-      SERVICE_UUID,
-      LED_UUID,
-      btoa(value)
     );
   }
 

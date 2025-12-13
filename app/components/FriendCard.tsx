@@ -24,6 +24,8 @@ export function FriendCard({
   const streakDifference = myBestStreak - bestStreak;
   const isAhead = streakDifference > 0;
   const isTied = streakDifference === 0;
+  
+  const absStreakDifference = Math.abs(streakDifference);
 
   return (
     <View style={[styles.friendCard, isYou && styles.yourCard]}>
@@ -53,27 +55,26 @@ export function FriendCard({
         <View style={styles.comparison}>
           {isTied ? (
             <View style={[styles.comparisonBadge, styles.tiedBadge]}>
-              <Text style={styles.comparisonText}>🤝 Tied!</Text>
+              <Text style={styles.comparisonText}>Tied!</Text>
             </View>
           ) : isAhead ? (
             <View style={[styles.comparisonBadge, styles.aheadBadge]}>
               <TrendingUp size={14} color={Colors.primary} />
               <Text style={styles.comparisonText}>
-                You're {Math.abs(streakDifference)} days ahead
+                {absStreakDifference} days ahead
               </Text>
             </View>
           ) : (
             <View style={[styles.comparisonBadge, styles.behindBadge]}>
               <TrendingDown size={14} color={Colors.accent} />
               <Text style={styles.comparisonText}>
-                {Math.abs(streakDifference)} days behind
+                {absStreakDifference} days behind
               </Text>
             </View>
           )}
         </View>
       )}
 
-      {/* Current Streak Info */}
       {currentStreak > 0 && !isYou && (
         <View style={styles.currentStreakBar}>
           <View style={styles.currentStreakInfo}>

@@ -104,16 +104,6 @@ export default function HomeScreen() {
         Moisture: {moisture}% 
       </Text>
 
-      
-
-
-      {/** @todo: not sure if we need to keep this? maybe at least move somewhere else */}
-      <TouchableOpacity 
-        style={styles.button} 
-        onPress={() => bleService.writeLED(moisture < 30 ? "1" : "0")}
-      >
-        <Text style={styles.buttonText}>Toggle LED</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -123,16 +113,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  button: {
-    marginTop: 30,
-    backgroundColor: '#4CAF50',
-    padding: 12,
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
   },
 })

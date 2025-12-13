@@ -5,8 +5,8 @@
   import { PaperProvider } from 'react-native-paper';
 
   import { PlantsProvider } from '../context/PlantsContext';
-import { StreaksProvider } from '@/context/StreaksContext';
-import { UserProvider } from '@/context/UserContext';
+  import { StreaksProvider } from '@/context/StreaksContext';
+  import { UserProvider } from '@/context/UserContext';
 
   export const unstable_settings = {
     anchor: '(tabs)',
@@ -21,6 +21,13 @@ import { UserProvider } from '@/context/UserContext';
               <ThemeProvider value={DefaultTheme}>
                 <Stack>
                   <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                  <Stack.Screen
+                  name="profile"
+                  options={{
+                    title: 'Profile',
+                    headerBackTitle: 'Home',
+                  }}
+                />
                 </Stack>
                 <StatusBar style="auto" />
               </ThemeProvider>

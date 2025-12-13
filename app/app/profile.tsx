@@ -31,9 +31,9 @@ export default function ProfileScreen(){
                     <Text style={styles.userName}>{user?.name || "Placeholder Name"}</Text>
                 </View>
 
-                {longestStreak && longestStreak.longestStreak > 0 ? (
+                {longestStreak && longestStreak.longestStreak > 0 && (
                     <View style={styles.bestPlantSection}>
-                        <Text style={styles.sectionTitle}>Best Performing Plant</Text>
+                        <Text style={styles.sectionTitle}>Most Watered Plant</Text>
                         <PlantStreakCard
                             plantName={plantWithLongest!.name}
                             plantType={plantWithLongest!.type}
@@ -44,12 +44,6 @@ export default function ProfileScreen(){
                             wateredToday={hasWateredToday(plantWithLongest!.id)} 
                             showWaterButton={false}
                         />
-                    </View>
-                ): (
-                    <View style={styles.emptyState}>
-                        <Text style={styles.emptyText}>
-                            Start watering your plants to build streaks!
-                        </Text>
                     </View>
                 )}
             </ScrollView>
@@ -85,15 +79,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.text,
     marginBottom: 16,
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: 'center',
   },
 });

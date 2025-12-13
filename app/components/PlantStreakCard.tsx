@@ -13,7 +13,6 @@ interface PlantStreakCardProps {
   wateredToday: boolean;
   onWaterPress?: () => void;
   showWaterButton?: boolean;
-  compact?: boolean;
 }
 
 export function PlantStreakCard({
@@ -26,10 +25,9 @@ export function PlantStreakCard({
   wateredToday,
   onWaterPress,
   showWaterButton = true,
-  compact = false,
 }: PlantStreakCardProps) {
   return (
-    <View style={[styles.card, compact && styles.cardCompact]}>
+    <View style={[styles.card]}>
       <View style={styles.cardHeader}>
         <Text style={styles.plantName}>{plantName}</Text>
         <Text style={styles.plantType}>{plantType}</Text>
@@ -37,24 +35,24 @@ export function PlantStreakCard({
 
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
-          <Flame size={compact ? 18 : 20} color={Colors.accent} />
-          <Text style={[styles.statValue, compact && styles.statValueCompact]}>
+          <Flame size={20} color={Colors.accent} />
+          <Text style={[styles.statValue]}>
             {currentStreak}
           </Text>
           <Text style={styles.statLabel}>Current Streak</Text>
         </View>
 
         <View style={styles.statItem}>
-          <Trophy size={compact ? 18 : 20} color={Colors.secondary} />
-          <Text style={[styles.statValue, compact && styles.statValueCompact]}>
+          <Trophy size={18} color={Colors.secondary} />
+          <Text style={[styles.statValue]}>
             {longestStreak}
           </Text>
           <Text style={styles.statLabel}>Best Streak</Text>
         </View>
 
         <View style={styles.statItem}>
-          <Calendar size={compact ? 18 : 20} color={Colors.icon} />
-          <Text style={[styles.statValue, compact && styles.statValueCompact]}>
+          <Calendar size={18} color={Colors.icon} />
+          <Text style={[styles.statValue]}>
             {totalWaterings}
           </Text>
           <Text style={styles.statLabel}>Total Waters</Text>
@@ -87,7 +85,7 @@ export function PlantStreakCard({
               wateredToday && styles.waterButtonTextDisabled,
             ]}
           >
-            {wateredToday ? 'Watered Today ✓' : 'Water Today'}
+            {wateredToday ? 'Watered Today ✓' : 'Watered Today'}
           </Text>
         </Pressable>
       )}
@@ -107,10 +105,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  cardCompact: {
-    padding: 16,
-    marginBottom: 12,
-  },
   cardHeader: {
     marginBottom: 16,
   },
@@ -129,9 +123,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 16,
     paddingVertical: 12,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: Colors.border,
   },
   statItem: {
     alignItems: 'center',
@@ -143,9 +134,6 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginTop: 4,
     marginBottom: 2,
-  },
-  statValueCompact: {
-    fontSize: 20,
   },
   statLabel: {
     fontSize: 12,

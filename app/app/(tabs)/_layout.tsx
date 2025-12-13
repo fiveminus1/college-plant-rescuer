@@ -4,7 +4,7 @@ import { Pressable, View } from 'react-native';
 import { Colors } from '@/constants/theme';
 import { Users, Sprout, Sun, Leaf, User } from 'lucide-react-native';
 import { Menu } from 'react-native-paper';
-import { usePlants } from '@/context/PlantsContext';
+import { usePlants, Plant } from '@/context/PlantsContext';
 import { HapticTab } from '@/components/haptic-tab';
 
 
@@ -43,7 +43,6 @@ export default function TabLayout() {
                   <Leaf size={26} />
 
                 </Pressable>
-                
               }
             >
               {plants.map((plant) => (
