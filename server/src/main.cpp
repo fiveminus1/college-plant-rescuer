@@ -17,8 +17,8 @@
 #define LED_UUID "12345678-1234-1234-1234-1234567890ad"
 
 // // define SSID and password here, deleted for commits/submission
-// String WIFI_SSID = "SETUP-60DD-5";
-// String WIFI_PASSWORD = "built4443chance";
+// String WIFI_SSID = "";
+// String WIFI_PASSWORD = "";
 
 
 // String iothubName = "collegeplantrescuer";
@@ -96,23 +96,23 @@ void setup(){
 
     Serial.println("Moisture Sensor running on BLE");
 
-    // establish Wi-Fi
-    WiFi.mode(WIFI_STA);
-    delay(1000);
-    Serial.println();
-    Serial.println();
-    Serial.print("Connecting to ");
-    Serial.println(WIFI_SSID);
+    // // establish Wi-Fi
+    // WiFi.mode(WIFI_STA);
+    // delay(1000);
+    // Serial.println();
+    // Serial.println();
+    // Serial.print("Connecting to ");
+    // Serial.println(WIFI_SSID);
 
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    // WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
-    while (WiFi.status() != WL_CONNECTED) {
-      delay(500);
-      Serial.print(".");
-      Serial.print(WiFi.status());
-    }
+    // while (WiFi.status() != WL_CONNECTED) {
+    //   delay(500);
+    //   Serial.print(".");
+    //   Serial.print(WiFi.status());
+    // }
 
-    Serial.println("WiFi connected");
+    // Serial.println("WiFi connected");
 }
 
 void loop(){

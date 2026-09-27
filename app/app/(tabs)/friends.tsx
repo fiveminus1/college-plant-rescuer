@@ -7,6 +7,7 @@ import { useUser } from '@/context/UserContext';
 import { getLongestStreak } from '@/helpers/streaks';
 import { Flame, Trophy, TrendingUp, TrendingDown } from 'lucide-react-native';
 import { FriendCard } from '@/components/FriendCard';
+import { PlantBackground } from '@/components/PlantBackground';
 
 const MOCK_FRIENDS = [
   {
@@ -32,32 +33,34 @@ export default function Friends() {
   const myBestStreak = myLongestStreak?.longestStreak || 0;
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Friends</Text>
+    <PlantBackground>
+      <SafeAreaView style={styles.container} edges={['bottom']}>
+        <ScrollView contentContainerStyle={styles.content}>
+          <Text style={styles.title}>Friends</Text>
 
-        <FriendCard 
-            name={user!.name}
-            bestStreak={myBestStreak}
-            currentStreak={myLongestStreak?.currentStreak}
-            isYou={true}
-            showComparison={false}
-        />
-
-        {MOCK_FRIENDS.map((friend) => (
-          <FriendCard
-            key={friend.id}
-            name={friend.name}
-            bestStreak={friend.bestStreak}
-            currentStreak={friend.currentStreak}
-            isYou={false}
-            myBestStreak={myBestStreak}
-            showComparison={true}
+          <FriendCard 
+              name={user!.name}
+              bestStreak={myBestStreak}
+              currentStreak={myLongestStreak?.currentStreak}
+              isYou={true}
+              showComparison={false}
           />
-        ))}
 
-      </ScrollView>
-    </SafeAreaView>
+          {MOCK_FRIENDS.map((friend) => (
+            <FriendCard
+              key={friend.id}
+              name={friend.name}
+              bestStreak={friend.bestStreak}
+              currentStreak={friend.currentStreak}
+              isYou={false}
+              myBestStreak={myBestStreak}
+              showComparison={true}
+            />
+          ))}
+
+        </ScrollView>
+      </SafeAreaView>
+    </PlantBackground>
   );
 }
 

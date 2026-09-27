@@ -5,6 +5,7 @@ import { useStreaks } from '@/context/StreaksContext';
 import { Colors } from '@/constants/theme';
 import { Droplet, Flame, Trophy, Calendar } from 'lucide-react-native';
 import { PlantStreakCard } from '@/components/PlantStreakCard';
+import { PlantBackground } from '@/components/PlantBackground';
 
 export default function StreaksScreen() {
   const { plants } = usePlants();
@@ -15,34 +16,36 @@ export default function StreaksScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Streaks</Text>
-        <Text style={styles.subtitle}>
-          Water your plants daily!
-        </Text>
+    <PlantBackground>
+      <ScrollView style={styles.container}>
+        <View style={styles.content}>
+          <Text style={styles.title}>Streaks</Text>
+          <Text style={styles.subtitle}>
+            Water your plants daily!
+          </Text>
 
-        {plants.map((plant) => {
-          const streak = getPlantStreak(plant.id);
-          const wateredToday = hasWateredToday(plant.id);
+          {plants.map((plant) => {
+            const streak = getPlantStreak(plant.id);
+            const wateredToday = hasWateredToday(plant.id);
 
-          return (
-            <PlantStreakCard 
-              key={plant.id}
-              plantName={plant.name}
-              plantType={plant.type}
-              currentStreak={streak.currentStreak}
-              longestStreak={streak.longestStreak}
-              totalWaterings={streak.totalWaterings}
-              lastWatered={streak.lastWatered}
-              wateredToday={wateredToday}
-              onWaterPress={() => handleWaterPress(plant.id)}
-              showWaterButton={true} 
-            />
-          )
-        })}
-      </View>
-    </ScrollView>
+            return (
+              <PlantStreakCard 
+                key={plant.id}
+                plantName={plant.name}
+                plantType={plant.type}
+                currentStreak={streak.currentStreak}
+                longestStreak={streak.longestStreak}
+                totalWaterings={streak.totalWaterings}
+                lastWatered={streak.lastWatered}
+                wateredToday={wateredToday}
+                onWaterPress={() => handleWaterPress(plant.id)}
+                showWaterButton={true} 
+              />
+            )
+          })}
+        </View>
+      </ScrollView>
+    </PlantBackground>
   );
 }
 

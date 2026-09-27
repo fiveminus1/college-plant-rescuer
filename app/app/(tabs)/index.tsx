@@ -7,6 +7,7 @@ import { bleService } from '../../ble/BLEService';
 import { usePlants } from '../../context/PlantsContext';
 import { useStreaks } from '@/context/StreaksContext';
 import { Subscription } from 'react-native-ble-plx';
+import { PlantBackground } from '@/components/PlantBackground';
 
 const MOISTURE_THRESHOLD = 50;
 
@@ -62,49 +63,53 @@ export default function HomeScreen() {
 
   if(!selectedPlant){
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={{ color: 'red' }}>No plant selected</Text>
-      </SafeAreaView>
+      <PlantBackground>
+        <SafeAreaView style={styles.container}>
+          <Text style={{ color: 'red' }}>No plant selected</Text>
+        </SafeAreaView>
+      </PlantBackground>
     );
   }
   
 
   return (
-    <SafeAreaView style={styles.container}>
-      {hasWateredToday(selectedPlant.id) && (
-        <Text style={{ color: '#4CAF50', fontSize: 18, fontWeight: 'bold', marginTop: 10 }}>
-          ✓ Watered today
+    <PlantBackground>
+      <SafeAreaView style={styles.container}>
+        {hasWateredToday(selectedPlant.id) && (
+          <Text style={{ color: '#4CAF50', fontSize: 18, fontWeight: 'bold', marginTop: 10 }}>
+            ✓ Watered today
+          </Text>
+        )}
+        
+        <Text style={{ fontSize: 28, fontWeight: 'bold', marginBottom: 20 }}>
+          {selectedPlant.name}
         </Text>
-      )}
-      
-      <Text style={{ fontSize: 28, fontWeight: 'bold', marginBottom: 20 }}>
-        {selectedPlant.name}
-      </Text>
 
-      {selectedPlant.type === 'Cactus' && (
-        <Sprout size={150} />
-      )}
+        {selectedPlant.type === 'Cactus' && (
+          <Sprout size={150} />
+        )}
 
-      {selectedPlant.type === 'Succulent' && (
-        <Flower2 size={150}/>
-      )}
+        {selectedPlant.type === 'Succulent' && (
+          <Flower2 size={150}/>
+        )}
 
-      <Progress.Bar 
-        progress={moisture / 100} 
-        width={200} 
-        color={ moisture < 30 ? 'red' : moisture > 50 ? '#019CE0' : 'orange'}
-      />
-      {(moisture) < 30 && (
-        <Text style={{ color: 'red', fontSize: 20, fontWeight: 'bold' }}>
-          Water soon
+        <Progress.Bar 
+          progress={moisture / 100} 
+          width={200} 
+          color={ moisture < 30 ? 'red' : moisture > 50 ? '#019CE0' : 'orange'}
+        />
+        {(moisture) < 30 && (
+          <Text style={{ color: 'red', fontSize: 20, fontWeight: 'bold' }}>
+            Water soon
+          </Text>
+        )}
+
+        <Text style={{ fontSize: 24, fontWeight: 'bold', marginTop: 30 }}>
+          Moisture: {moisture}% 
         </Text>
-      )}
 
-      <Text style={{ fontSize: 24, fontWeight: 'bold', marginTop: 30 }}>
-        Moisture: {moisture}% 
-      </Text>
-
-    </SafeAreaView>
+      </SafeAreaView>
+    </PlantBackground>
   );
 }
 

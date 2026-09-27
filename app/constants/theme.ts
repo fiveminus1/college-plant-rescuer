@@ -11,7 +11,7 @@ export const Colors = {
   secondary: '#FFC107',  
 
   text: '#11181C',
-  background: '#fff',
+  background: '#FBFCF8',
   icon: '#687076',
   tabIconDefault: '#687076',
   tabBarBackground: '#98C9A3',
