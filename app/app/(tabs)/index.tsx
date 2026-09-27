@@ -1,7 +1,8 @@
-import { CircleCheck, Flower2, Sprout, TriangleAlert, Wifi } from 'lucide-react-native';
-import { useEffect, useRef } from 'react';
+import { CircleCheck, Flower2, Sprout, TriangleAlert } from 'lucide-react-native';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import * as Progress from 'react-native-progress';
+import { Snackbar } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { bleService } from '../../ble/BLEService';
 import { usePlants } from '../../context/PlantsContext';
@@ -19,6 +20,7 @@ export default function HomeScreen() {
   const moistureRange = selectedPlant
     ? getPlantTypeConfig(selectedPlant.type)
     : null;
+  const [connectionNoticeVisible, setConnectionNoticeVisible] = useState(true);
 
   const selectedPlantRef = useRef(selectedPlant);
   const hasRecordedTodayRef = useRef(false);
@@ -26,6 +28,10 @@ export default function HomeScreen() {
   useEffect(() => {
     selectedPlantRef.current = selectedPlant;
   }, [selectedPlant]);
+
+  useEffect(() => {
+    setConnectionNoticeVisible(true);
+  }, [selectedPlant?.id]);
 
   useEffect(() => {
     let subscription: Subscription | undefined;
@@ -85,27 +91,21 @@ export default function HomeScreen() {
           <View style={styles.heading}>
             <Text style={styles.plantName}>{selectedPlant.name}</Text>
             <Text style={styles.plantType}>{selectedPlant.type}</Text>
-            <View style={[
-              styles.statusRow,
-            ]}>
-              {!hasMoistureReading ? (
-                <Wifi size={15} color={Colors.textSecondary} />
-              ) : moisture < moistureRange!.minMoisture ? (
-                <TriangleAlert size={15} color={Colors.accent} />
-              ) : (
-                <CircleCheck size={15} color={Colors.primary} />
-              )}
-              <Text style={[
-                styles.statusText,
-                hasMoistureReading && moisture < moistureRange!.minMoisture && styles.statusTextWarning,
-              ]}>
-                {!hasMoistureReading
-                  ? 'Waiting'
-                  : moisture < moistureRange!.minMoisture
-                    ? 'Needs water'
-                    : 'In range'}
-              </Text>
-            </View>
+            {hasMoistureReading ? (
+              <View style={styles.statusRow}>
+                {moisture < moistureRange!.minMoisture ? (
+                  <TriangleAlert size={15} color={Colors.accent} />
+                ) : (
+                  <CircleCheck size={15} color={Colors.primary} />
+                )}
+                <Text style={[
+                  styles.statusText,
+                  moisture < moistureRange!.minMoisture && styles.statusTextWarning,
+                ]}>
+                  {moisture < moistureRange!.minMoisture ? 'Needs water' : 'In range'}
+                </Text>
+              </View>
+            ) : null}
           </View>
 
           <View style={styles.plantStage}>
@@ -162,6 +162,18 @@ export default function HomeScreen() {
             </View>
           </View>
         </View>
+
+        <Snackbar
+          visible={!hasMoistureReading && connectionNoticeVisible}
+          onDismiss={() => setConnectionNoticeVisible(false)}
+          duration={Snackbar.DURATION_INDEFINITE}
+          action={{
+            label: 'Dismiss',
+            onPress: () => setConnectionNoticeVisible(false),
+          }}
+        >
+          Waiting for Bluetooth connection to sensor...
+        </Snackbar>
 
       </SafeAreaView>
     </PlantBackground>
