@@ -1,6 +1,6 @@
 import { Tabs, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Colors } from '@/constants/theme';
 import { Users, Sprout, Sun, Leaf, User, Plus } from 'lucide-react-native';
 import { Menu } from 'react-native-paper';
@@ -38,12 +38,7 @@ export default function TabLayout() {
               anchor={
                 <Pressable
                   onPress={() => setMenuVisible(true)}
-                  style={{ 
-                    width: 40,
-                    height: 40,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
+                  style={styles.topIconButton}
                 >
                   <Leaf size={26} />
 
@@ -54,11 +49,18 @@ export default function TabLayout() {
                 <Menu.Item
                   key={plant.id}
                   title={plant.name}
-                  leadingIcon={() =>
-                    selectedPlant?.id === plant.id ? (
-                      <Sprout size={18} color={Colors.icon} />
-                    ) : null
-                  }
+                  leadingIcon={() => {
+                    const isSelected = selectedPlant?.id === plant.id;
+
+                    return (
+                      <Sprout
+                        size={18}
+                        color={isSelected ? Colors.primary : Colors.icon}
+                        fill={isSelected ? Colors.primary : 'none'}
+                        strokeWidth={isSelected ? 2.5 : 2}
+                      />
+                    );
+                  }}
                   onPress={() => {
                     selectPlant(plant.id);
                     setMenuVisible(false);
@@ -79,10 +81,7 @@ export default function TabLayout() {
         headerRight: () => (
           <Pressable
             onPress={() => router.push('/profile')}   
-            style={{
-              marginRight: 24,
-              padding: 8,
-            }}
+            style={[styles.topIconButton, styles.profileButton]}
           >
             <User size={26} />
           </Pressable>
@@ -119,7 +118,11 @@ export default function TabLayout() {
         name="friends"
         options={{
           title: 'Friends',
-          tabBarIcon: ({ color }) => <Users size={28} color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.tabIcon, focused && styles.tabIconActive]}>
+              <Users size={24} color={color} />
+            </View>
+          ),
         }}
       />
 
@@ -127,7 +130,11 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <Sprout size={28} color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.tabIcon, focused && styles.tabIconActive]}>
+              <Sprout size={24} color={color} />
+            </View>
+          ),
         }}
       />
 
@@ -135,7 +142,11 @@ export default function TabLayout() {
         name="streaks"
         options={{
           title: 'Streaks',
-          tabBarIcon: ({ color }) => <Sun size={28} color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.tabIcon, focused && styles.tabIconActive]}>
+              <Sun size={24} color={color} />
+            </View>
+          ),
         }}
       />
       </Tabs>
@@ -150,3 +161,41 @@ export default function TabLayout() {
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  topIconButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.34)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.55)',
+    shadowColor: '#17313A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  profileButton: {
+    marginLeft: 0,
+    marginRight: 24,
+  },
+  tabIcon: {
+    width: 48,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  tabIconActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    shadowColor: '#17313A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.16,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+});
