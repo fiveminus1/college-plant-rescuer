@@ -8,13 +8,15 @@ import { usePlants } from '../../context/PlantsContext';
 import { useStreaks } from '@/context/StreaksContext';
 import { Subscription } from 'react-native-ble-plx';
 import { PlantBackground } from '@/components/PlantBackground';
-
-const MOISTURE_THRESHOLD = 50;
+import { getPlantTypeConfig } from '@/constants/plants';
 
 export default function HomeScreen() {
   const { selectedPlant, updateMoisture } = usePlants();
   const { recordWatering, hasWateredToday } = useStreaks();
   const moisture = selectedPlant?.moisture ?? 0;
+  const moistureRange = selectedPlant
+    ? getPlantTypeConfig(selectedPlant.type)
+    : null;
 
   const selectedPlantRef = useRef(selectedPlant);
   const hasRecordedTodayRef = useRef(false);
@@ -49,7 +51,8 @@ export default function HomeScreen() {
     const alreadyWatered = hasWateredToday(selectedPlant.id);
 
     if (
-      moisture >= MOISTURE_THRESHOLD &&
+      moistureRange &&
+      moisture >= moistureRange.maxMoisture &&
       !alreadyWatered &&
       !hasRecordedTodayRef.current
     ) {
@@ -59,7 +62,7 @@ export default function HomeScreen() {
 
     if(!alreadyWatered)
       hasRecordedTodayRef.current = false;
-  }, [moisture, selectedPlant, recordWatering, hasWateredToday]);
+  }, [moisture, moistureRange, selectedPlant, recordWatering, hasWateredToday]);
 
   if(!selectedPlant){
     return (
@@ -96,9 +99,15 @@ export default function HomeScreen() {
         <Progress.Bar 
           progress={moisture / 100} 
           width={200} 
-          color={ moisture < 30 ? 'red' : moisture > 50 ? '#019CE0' : 'orange'}
+          color={
+            moisture < moistureRange!.minMoisture
+              ? 'red'
+              : moisture >= moistureRange!.maxMoisture
+                ? '#019CE0'
+                : 'orange'
+          }
         />
-        {(moisture) < 30 && (
+        {moisture < moistureRange!.minMoisture && (
           <Text style={{ color: 'red', fontSize: 20, fontWeight: 'bold' }}>
             Water soon
           </Text>

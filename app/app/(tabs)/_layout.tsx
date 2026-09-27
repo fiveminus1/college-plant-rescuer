@@ -2,26 +2,31 @@ import { Tabs, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Colors } from '@/constants/theme';
-import { Users, Sprout, Sun, Leaf, User } from 'lucide-react-native';
+import { Users, Sprout, Sun, Leaf, User, Plus } from 'lucide-react-native';
 import { Menu } from 'react-native-paper';
-import { usePlants, Plant } from '@/context/PlantsContext';
+import { usePlants } from '@/context/PlantsContext';
+import { PlantType } from '@/constants/plants';
 import { HapticTab } from '@/components/haptic-tab';
+import { CreatePlantDialog } from '../../components/CreatePlantDialog';
 
 
 export default function TabLayout() {
   const [menuVisible, setMenuVisible] = useState(false);
+  const [createDialogVisible, setCreateDialogVisible] = useState(false);
 
-  const { plants, selectedPlant, selectPlant } = usePlants();
+  const { plants, selectedPlant, selectPlant, addPlant } = usePlants();
 
   const router = useRouter();
 
   return (
-    <Tabs
+    <>
+      <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors.background,
         tabBarInactiveTintColor: Colors.text,
         headerShown: true,
         headerTitle: () => null,
+        headerShadowVisible: true,
 
         headerLeft: () => (
           <View style={{ marginLeft: 24 }}>
@@ -60,6 +65,14 @@ export default function TabLayout() {
                   }}
                 />
               ))}
+              <Menu.Item
+                title="Create plant"
+                leadingIcon={() => <Plus size={18} color={Colors.icon} />}
+                onPress={() => {
+                  setMenuVisible(false);
+                  setCreateDialogVisible(true);
+                }}
+              />
             </Menu>
           </View>
         ),
@@ -74,11 +87,29 @@ export default function TabLayout() {
             <User size={26} />
           </Pressable>
         ),
-        headerStyle: { backgroundColor: Colors.topBarBackground },
+        headerStyle: {
+          backgroundColor: Colors.topBarBackground,
+          borderBottomWidth: 1,
+          borderBottomColor: 'rgba(17, 24, 28, 0.08)',
+          shadowColor: '#17313A',
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 0.14,
+          shadowRadius: 7,
+          elevation: 5,
+        },
         tabBarButton: HapticTab,
         tabBarShowLabel: false,
         tabBarStyle: {
           backgroundColor: Colors.tabBarBackground,
+          borderTopWidth: 1,
+          borderTopColor: 'rgba(17, 24, 28, 0.1)',
+          shadowColor: '#17313A',
+          shadowOffset: { width: 0, height: -3 },
+          shadowOpacity: 0.16,
+          shadowRadius: 8,
+          elevation: 8,
+          height: 72,
+          paddingBottom: 8,
         },
         tabBarItemStyle: {
           paddingTop: 12,
@@ -107,6 +138,15 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <Sun size={28} color={color} />,
         }}
       />
-    </Tabs>
+      </Tabs>
+      <CreatePlantDialog
+        visible={createDialogVisible}
+        onDismiss={() => setCreateDialogVisible(false)}
+        onCreate={(name, type: PlantType) => {
+          addPlant(name, type);
+          setCreateDialogVisible(false);
+        }}
+      />
+    </>
   );
 }
