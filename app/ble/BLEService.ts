@@ -1,3 +1,4 @@
+import { NativeModules } from "react-native";
 import { BleManager, Device } from "react-native-ble-plx";
 
 const SERVICE_UUID = "12345678-1234-1234-1234-1234567890ab";
@@ -6,14 +7,16 @@ const MOISTURE_UUID = "12345678-1234-1234-1234-1234567890ac";
 const deviceName = "ESP32-MoistureSensor"
 
 class BLEService {
-  manager: BleManager;
+  manager: BleManager | null;
   device: Device | null = null;
 
   constructor() {
-    this.manager = new BleManager();
+    this.manager = NativeModules.BlePlx ? new BleManager() : null;
   } 
 
   async scanForDevice(onFound: (device: Device) => void) {
+    if (!this.manager) return;
+
     this.manager.startDeviceScan(null, null, (err, scannedDevice) => {
       if(err) return console.error(err);
 
@@ -27,13 +30,15 @@ class BLEService {
   }
 
   async connect(device: Device){
+    if (!this.manager) return null;
+
     this.device = await device.connect();
     await this.device.discoverAllServicesAndCharacteristics();
     return this.device;
   }
 
   subscribeToMoisture(callback: (percentage: number) => void) {
-    if(!this.device)
+    if(!this.device || !this.manager)
       return;
 
     return this.device.monitorCharacteristicForService(
@@ -61,7 +66,7 @@ class BLEService {
   }
 
   destroy(){
-    this.manager.destroy();
+    this.manager?.destroy();
   }
 
 

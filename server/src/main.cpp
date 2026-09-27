@@ -4,10 +4,10 @@
 #include <BLEServer.h>
 #include <BLE2902.h>
 #include <string>
-#include <WiFi.h>
-#include <HTTPClient.h>
-#include <WiFiClient.h>
-#include <ArduinoJson.h>
+// #include <WiFi.h>
+// #include <WiFiClient.h>
+// #include <HTTPClient.h>
+// #include <ArduinoJson.h>
 
 #define SENSOR_PIN 36
 #define LED_PIN 2
@@ -16,13 +16,15 @@
 #define MOISTURE_UUID "12345678-1234-1234-1234-1234567890ac"
 #define LED_UUID "12345678-1234-1234-1234-1234567890ad"
 
-// define SSID and password here, deleted for commits/submission
+// // define SSID and password here, deleted for commits/submission
+// String WIFI_SSID = "SETUP-60DD-5";
+// String WIFI_PASSWORD = "built4443chance";
 
 
-String iothubName = "collegeplantrescuer";
-String deviceName = "esp32";
-String url = "https://" + iothubName + ".azure-devices.net/devices/" +
-deviceName + "/messages/events?api-version=2021-04-12";
+// String iothubName = "collegeplantrescuer";
+// String deviceName = "esp32";
+// String url = "https://" + iothubName + ".azure-devices.net/devices/" +
+// deviceName + "/messages/events?api-version=2021-04-12";
 
 
 const int dryCal = 3500;
@@ -133,28 +135,28 @@ void loop(){
     Serial.print("Moisture %: ");
     Serial.println(percent);
 
-    ArduinoJson::JsonDocument doc;
-    doc["rawMoisture"] = raw;
-    doc["percent"] = percent;
+    // ArduinoJson::JsonDocument doc;
+    // doc["rawMoisture"] = raw;
+    // doc["percent"] = percent;
 
-    char moistureBuffer[256];
-    serializeJson(doc, moistureBuffer, sizeof(moistureBuffer));
-    
-    WiFiClientSecure client;
-    client.setCACert(root_ca);
+    // char moistureBuffer[256];
+    // serializeJson(doc, moistureBuffer, sizeof(moistureBuffer));
+    // 
+    // WiFiClientSecure client;
+    // client.setCACert(root_ca);
 
-    HTTPClient http;
-    http.begin(client, url);
-    http.addHeader("Content-Type", "application/json");
-    http.addHeader("Authorization", SAS_TOKEN);
-    int httpCode = http.POST(moistureBuffer);
+    // HTTPClient http;
+    // http.begin(client, url);
+    // http.addHeader("Content-Type", "application/json");
+    // http.addHeader("Authorization", SAS_TOKEN);
+    // int httpCode = http.POST(moistureBuffer);
 
-    if (httpCode == 204) {
-    Serial.println("Moisture sent: " + String(moistureBuffer));
-    } else {
-    Serial.println("Failed to send moisture. HTTP code: " + String(httpCode));
-    }
-    http.end();
+    // if (httpCode == 204) {
+    // Serial.println("Moisture sent: " + String(moistureBuffer));
+    // } else {
+    // Serial.println("Failed to send moisture. HTTP code: " + String(httpCode));
+    // }
+    // http.end();
   }
 
   if(!deviceConnected && oldDeviceConnected){
