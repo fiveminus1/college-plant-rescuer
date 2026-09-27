@@ -1,6 +1,6 @@
-import { Sprout, Flower2 } from 'lucide-react-native';
+import { CircleCheck, Flower2, Sprout, TriangleAlert, Wifi } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
-import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import * as Progress from 'react-native-progress';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { bleService } from '../../ble/BLEService';
@@ -9,10 +9,12 @@ import { useStreaks } from '@/context/StreaksContext';
 import { Subscription } from 'react-native-ble-plx';
 import { PlantBackground } from '@/components/PlantBackground';
 import { getPlantTypeConfig } from '@/constants/plants';
+import { Colors } from '@/constants/theme';
 
 export default function HomeScreen() {
   const { selectedPlant, updateMoisture } = usePlants();
   const { recordWatering, hasWateredToday } = useStreaks();
+  const hasMoistureReading = selectedPlant?.moisture !== null && selectedPlant?.moisture !== undefined;
   const moisture = selectedPlant?.moisture ?? 0;
   const moistureRange = selectedPlant
     ? getPlantTypeConfig(selectedPlant.type)
@@ -43,7 +45,7 @@ export default function HomeScreen() {
       subscription?.remove?.();
       bleService.destroy();
     };
-  }, []);
+  }, [updateMoisture]);
 
   useEffect(() => {
     if(!selectedPlant) return;
@@ -52,6 +54,7 @@ export default function HomeScreen() {
 
     if (
       moistureRange &&
+      hasMoistureReading &&
       moisture >= moistureRange.maxMoisture &&
       !alreadyWatered &&
       !hasRecordedTodayRef.current
@@ -62,7 +65,7 @@ export default function HomeScreen() {
 
     if(!alreadyWatered)
       hasRecordedTodayRef.current = false;
-  }, [moisture, moistureRange, selectedPlant, recordWatering, hasWateredToday]);
+  }, [hasMoistureReading, moisture, moistureRange, selectedPlant, recordWatering, hasWateredToday]);
 
   if(!selectedPlant){
     return (
@@ -78,44 +81,87 @@ export default function HomeScreen() {
   return (
     <PlantBackground>
       <SafeAreaView style={styles.container}>
-        {hasWateredToday(selectedPlant.id) && (
-          <Text style={{ color: '#4CAF50', fontSize: 18, fontWeight: 'bold', marginTop: 10 }}>
-            ✓ Watered today
-          </Text>
-        )}
-        
-        <Text style={{ fontSize: 28, fontWeight: 'bold', marginBottom: 20 }}>
-          {selectedPlant.name}
-        </Text>
+        <View style={styles.content}>
+          <View style={styles.heading}>
+            <Text style={styles.plantName}>{selectedPlant.name}</Text>
+            <Text style={styles.plantType}>{selectedPlant.type}</Text>
+            <View style={[
+              styles.statusRow,
+            ]}>
+              {!hasMoistureReading ? (
+                <Wifi size={15} color={Colors.textSecondary} />
+              ) : moisture < moistureRange!.minMoisture ? (
+                <TriangleAlert size={15} color={Colors.accent} />
+              ) : (
+                <CircleCheck size={15} color={Colors.primary} />
+              )}
+              <Text style={[
+                styles.statusText,
+                hasMoistureReading && moisture < moistureRange!.minMoisture && styles.statusTextWarning,
+              ]}>
+                {!hasMoistureReading
+                  ? 'Waiting'
+                  : moisture < moistureRange!.minMoisture
+                    ? 'Needs water'
+                    : 'In range'}
+              </Text>
+            </View>
+          </View>
 
-        {selectedPlant.type === 'Cactus' && (
-          <Sprout size={150} />
-        )}
+          <View style={styles.plantStage}>
+            {selectedPlant.type === 'Cactus' ? (
+              <Sprout size={150} color={Colors.primary} strokeWidth={1.5} />
+            ) : (
+              <Flower2 size={150} color={Colors.primary} strokeWidth={1.5} />
+            )}
+          </View>
 
-        {selectedPlant.type === 'Succulent' && (
-          <Flower2 size={150}/>
-        )}
+          <View style={styles.moistureCard}>
+            <View style={styles.cardHeader}>
+              <View>
+                <Text style={styles.cardLabel}>Moisture</Text>
+                <Text style={styles.moistureValue}>
+                  {hasMoistureReading ? `${moisture}%` : '--'}
+                </Text>
+              </View>
+              <View style={styles.targetCopy}>
+                <Text style={styles.cardLabel}>Target range</Text>
+                <Text style={styles.targetValue}>
+                  {moistureRange!.minMoisture}% - {moistureRange!.maxMoisture}%
+                </Text>
+              </View>
+            </View>
 
-        <Progress.Bar 
-          progress={moisture / 100} 
-          width={200} 
-          color={
-            moisture < moistureRange!.minMoisture
-              ? 'red'
-              : moisture >= moistureRange!.maxMoisture
-                ? '#019CE0'
-                : 'orange'
-          }
-        />
-        {moisture < moistureRange!.minMoisture && (
-          <Text style={{ color: 'red', fontSize: 20, fontWeight: 'bold' }}>
-            Water soon
-          </Text>
-        )}
+            <Progress.Bar
+              progress={hasMoistureReading ? moisture / 100 : 0}
+              width={null}
+              height={10}
+              borderRadius={5}
+              borderWidth={0}
+              color={
+                !hasMoistureReading
+                  ? Colors.border
+                  : moisture < moistureRange!.minMoisture
+                    ? Colors.accent
+                    : Colors.primary
+              }
+              unfilledColor={Colors.border}
+            />
 
-        <Text style={{ fontSize: 24, fontWeight: 'bold', marginTop: 30 }}>
-          Moisture: {moisture}% 
-        </Text>
+            <View style={styles.cardFooter}>
+              <Text style={styles.helperText}>
+                {!hasMoistureReading
+                  ? 'Waiting for the sensor to report'
+                  : moisture < moistureRange!.minMoisture
+                    ? 'Water soon to keep your plant thriving'
+                    : 'Your plant is comfortable right now'}
+              </Text>
+              {hasWateredToday(selectedPlant.id) && (
+                <Text style={styles.wateredText}>Watered today</Text>
+              )}
+            </View>
+          </View>
+        </View>
 
       </SafeAreaView>
     </PlantBackground>
@@ -125,7 +171,95 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 28,
+    paddingBottom: 24,
+  },
+  heading: {
+    paddingTop: 8,
+  },
+  plantName: {
+    fontSize: 30,
+    lineHeight: 36,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  plantType: {
+    fontSize: 15,
+    color: Colors.textSecondary,
+    marginTop: 4,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 14,
+  },
+  statusText: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+  },
+  statusTextWarning: {
+    color: Colors.accent,
+  },
+  plantStage: {
+    flex: 1,
+    minHeight: 230,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  moistureCard: {
+    backgroundColor: Colors.cardBackground,
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginBottom: 18,
+  },
+  cardLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginBottom: 5,
+  },
+  moistureValue: {
+    fontSize: 34,
+    lineHeight: 38,
+    fontWeight: '800',
+    color: Colors.text,
+  },
+  targetCopy: {
+    alignItems: 'flex-end',
+  },
+  targetValue: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 14,
+  },
+  helperText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
+    color: Colors.textSecondary,
+  },
+  wateredText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#438A51',
   },
 })

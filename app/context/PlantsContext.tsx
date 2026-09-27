@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useState } from "react";
 import { PlantType } from '../constants/plants';
 
 export interface Plant {
@@ -46,11 +46,11 @@ export function PlantsProvider({ children }: { children: ReactNode }) {
     setSelectedPlantId(id);
   }
 
-  function updateMoisture(id: string, value: number){
+  const updateMoisture = useCallback((id: string, value: number) => {
     setPlants(prev => 
       prev.map(p => (p.id === id ? { ...p, moisture: value }: p))
     );
-  }
+  }, []);
 
   return (
     <PlantsContext.Provider
