@@ -1,9 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { usePlants } from '@/context/PlantsContext';
 import { useStreaks } from '@/context/StreaksContext';
 import { Colors } from '@/constants/theme';
-import { Droplet, Flame, Trophy, Calendar } from 'lucide-react-native';
 import { PlantStreakCard } from '@/components/PlantStreakCard';
 import { PlantBackground } from '@/components/PlantBackground';
 

@@ -13,8 +13,7 @@ export async function initializeDatabase() {
       id TEXT PRIMARY KEY NOT NULL,
       name TEXT NOT NULL,
       type TEXT NOT NULL,
-      moisture REAL,
-      image_uri TEXT
+      moisture REAL
     );
   `);
 }
@@ -31,6 +30,3 @@ export async function updatePlantMoisture(id: string, moisture: number) {
   await database.update(plants).set({ moisture }).where(eq(plants.id, id));
 }
 
-export async function updatePlantImage(id: string, imageUri: string | null) {
-  await database.update(plants).set({ imageUri }).where(eq(plants.id, id));
-}

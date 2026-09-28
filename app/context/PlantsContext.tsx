@@ -1,10 +1,14 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { PlantType } from '../constants/plants';
 import {
+  addPlantImage as savePlantImage,
+  getPlantImages,
+  initializePlantImages,
+} from '../db/plant-images';
+import {
   getPlants,
   initializeDatabase,
   insertPlant,
-  updatePlantImage as savePlantImage,
   updatePlantMoisture as savePlantMoisture,
 } from '../db/plants';
 
@@ -13,23 +17,28 @@ export interface Plant {
   name: string;
   type: PlantType;
   moisture: number | null;
-  imageUri: string | null;
+  images: PlantPhoto[];
+}
+
+export interface PlantPhoto {
+  uri: string;
+  addedAt: number;
 }
 
 interface PlantsContextValue {
   plants: Plant[]
   selectedPlant: Plant | null;
   selectPlant: (id: string) => void;
-  addPlant: (name: string, type: PlantType, imageUri?: string | null) => Promise<void>;
-  updatePlantImage: (id: string, imageUri: string | null) => Promise<void>;
+  addPlant: (name: string, type: PlantType) => Promise<void>;
+  addPlantImage: (id: string, imageUri: string) => Promise<void>;
   updateMoisture: (id: string, value: number) => Promise<void>;
 }
 
 const PlantsContext = createContext<PlantsContextValue>(null!);
 
 const defaultPlants: Plant[] = [
-  { id: "1", name: "Greg", type: "Cactus", moisture: null, imageUri: null },
-  { id: "2", name: "Gertrude", type: "Succulent", moisture: null, imageUri: null },
+  { id: "1", name: "Greg", type: "Cactus", moisture: null, images: [] },
+  { id: "2", name: "Gertrude", type: "Succulent", moisture: null, images: [] },
 ];
 
 export function PlantsProvider({ children }: { children: ReactNode }) {
@@ -41,17 +50,24 @@ export function PlantsProvider({ children }: { children: ReactNode }) {
     async function loadPlants() {
       try {
         await initializeDatabase();
-        const rows = await getPlants();
+        await initializePlantImages();
+        const [rows, imageRows] = await Promise.all([getPlants(), getPlantImages()]);
         let loadedPlants: Plant[];
 
         if (rows.length > 0) {
-          loadedPlants = rows.map((row) => ({
-            id: row.id,
-            name: row.name,
-            type: row.type as PlantType,
-            moisture: row.moisture,
-            imageUri: row.imageUri,
-          }));
+          loadedPlants = rows.map((row) => {
+            const images = imageRows
+              .filter((image) => image.plantId === row.id)
+              .map((image) => ({ uri: image.uri, addedAt: image.createdAt }));
+
+            return {
+              id: row.id,
+              name: row.name,
+              type: row.type as PlantType,
+              moisture: row.moisture,
+              images,
+            };
+          });
         } else {
           loadedPlants = defaultPlants;
         }
@@ -83,18 +99,18 @@ export function PlantsProvider({ children }: { children: ReactNode }) {
     setSelectedPlantId(id);
   }
 
-  async function addPlant(name: string, type: PlantType, imageUri: string | null = null) {
+  async function addPlant(name: string, type: PlantType) {
     const id = `${Date.now()}`;
     const plant: Plant = {
       id,
       name: name.trim(),
       type,
       moisture: null,
-      imageUri,
+      images: [],
     };
 
     try {
-      await insertPlant(plant);
+      await insertPlant({ id, name: plant.name, type, moisture: null });
     } catch (error) {
       console.warn('Could not add plant', error);
       return;
@@ -114,19 +130,24 @@ export function PlantsProvider({ children }: { children: ReactNode }) {
       .catch((error) => console.warn('Could not update plant moisture', error));
   }, []);
 
-  const updatePlantImage = useCallback((id: string, imageUri: string | null) => {
+  const addPlantImage = useCallback((id: string, imageUri: string) => {
     return savePlantImage(id, imageUri)
-      .then(() => {
+      .then((addedAt) => {
         setPlants(prev =>
-          prev.map(p => (p.id === id ? { ...p, imageUri } : p))
+          prev.map(p => (p.id === id
+            ? {
+                ...p,
+                images: [...p.images, { uri: imageUri, addedAt }],
+              }
+            : p))
         );
       })
-      .catch((error) => console.warn('Could not update plant image', error));
+      .catch((error) => console.warn('Could not add plant image', error));
   }, []);
 
   return (
     <PlantsContext.Provider
-      value={{ plants, selectedPlant, selectPlant, addPlant, updatePlantImage, updateMoisture }}
+      value={{ plants, selectedPlant, selectPlant, addPlant, addPlantImage, updateMoisture }}
     >
       {children}
     </PlantsContext.Provider>

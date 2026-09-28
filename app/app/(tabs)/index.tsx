@@ -5,7 +5,7 @@ import { useStreaks } from '@/context/StreaksContext';
 import * as ImagePicker from 'expo-image-picker';
 import { CircleCheck, ImagePlus, TriangleAlert } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Subscription } from 'react-native-ble-plx';
 import { Snackbar } from 'react-native-paper';
 import * as Progress from 'react-native-progress';
@@ -14,7 +14,7 @@ import { bleService } from '../../ble/BLEService';
 import { usePlants } from '../../context/PlantsContext';
 
 export default function HomeScreen() {
-  const { selectedPlant, updateMoisture, updatePlantImage } = usePlants();
+  const { selectedPlant, updateMoisture, addPlantImage } = usePlants();
   const { recordWatering, hasWateredToday } = useStreaks();
   const hasMoistureReading = selectedPlant?.moisture !== null && selectedPlant?.moisture !== undefined;
   const moisture = selectedPlant?.moisture ?? 0;
@@ -22,6 +22,10 @@ export default function HomeScreen() {
     ? getPlantTypeConfig(selectedPlant.type)
     : null;
   const [connectionNoticeVisible, setConnectionNoticeVisible] = useState(true);
+  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
+
+  const images = selectedPlant?.images ?? [];
+  const hasImages = images.length > 0;
 
   const choosePlantPhoto = async () => {
     if (!selectedPlant) return;
@@ -34,7 +38,7 @@ export default function HomeScreen() {
     });
 
     if (!result.canceled) {
-      updatePlantImage(selectedPlant.id, result.assets[0].uri);
+      await addPlantImage(selectedPlant.id, result.assets[0].uri);
     }
   };
 
@@ -47,6 +51,10 @@ export default function HomeScreen() {
 
   useEffect(() => {
     setConnectionNoticeVisible(true);
+  }, [selectedPlant?.id]);
+
+  useEffect(() => {
+    setActivePhotoIndex(0);
   }, [selectedPlant?.id]);
 
   useEffect(() => {
@@ -126,30 +134,67 @@ export default function HomeScreen() {
 
           <View style={styles.plantStage}>
             <View style={styles.photoControls}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={selectedPlant.imageUri ? 'View plant photo' : 'Add plant photo'}
-                onPress={choosePlantPhoto}
-                style={styles.photoButton}
-              >
-                {selectedPlant.imageUri ? (
-                  <Image source={{ uri: selectedPlant.imageUri }} style={styles.plantImage} />
-                ) : (
+              {hasImages ? (
+                <FlatList
+                  data={images}
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.photoCarousel}
+                  keyExtractor={(item, index) => `${item.uri}-${index}`}
+                  onMomentumScrollEnd={(event) => {
+                    setActivePhotoIndex(Math.round(event.nativeEvent.contentOffset.x / 240));
+                  }}
+                  renderItem={({ item }) => (
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel="View plant photo"
+                      onPress={choosePlantPhoto}
+                      style={styles.photoSlide}
+                    >
+                      <Image source={{ uri: item.uri }} style={styles.plantImage} />
+                      <Text style={styles.photoDate}>
+                        {new Date(item.addedAt).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </Text>
+                    </Pressable>
+                  )}
+                />
+              ) : (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Add plant photo"
+                  onPress={choosePlantPhoto}
+                  style={styles.photoButton}
+                >
                   <View style={styles.photoPlaceholder}>
                     <ImagePlus size={54} color={Colors.primary} strokeWidth={1.5} />
                     <Text style={styles.photoPlaceholderText}>Add a photo</Text>
                   </View>
-                )}
-              </Pressable>
-              {selectedPlant.imageUri && (
+                </Pressable>
+              )}
+              {hasImages && images.length > 1 && (
+                <View style={styles.photoDots} accessibilityLabel={`Photo ${activePhotoIndex + 1} of ${images.length}`}>
+                  {images.map((image, index) => (
+                    <View
+                      key={`${image.uri}-dot-${index}`}
+                      style={[styles.photoDot, index === activePhotoIndex && styles.photoDotActive]}
+                    />
+                  ))}
+                </View>
+              )}
+              {hasImages && (
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Select a different plant photo"
+                  accessibilityLabel="Add another plant photo"
                   onPress={choosePlantPhoto}
                   style={styles.changePhotoButton}
                 >
                   <ImagePlus size={15} color={Colors.primary} />
-                  <Text style={styles.changePhotoText}>Select photo</Text>
+                  <Text style={styles.changePhotoText}>Add photo</Text>
                 </Pressable>
               )}
             </View>
@@ -258,9 +303,10 @@ const styles = StyleSheet.create({
   },
   plantStage: {
     flex: 1,
-    minHeight: 230,
+    minHeight: 360,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingBottom: 24,
   },
   photoControls: {
     alignItems: 'center',
@@ -275,6 +321,21 @@ const styles = StyleSheet.create({
     height: 240,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  photoCarousel: {
+    width: 240,
+    height: 272,
+  },
+  photoSlide: {
+    width: 240,
+    height: 272,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoDate: {
+    marginTop: 8,
+    fontSize: 12,
+    color: Colors.textSecondary,
   },
   photoPlaceholder: {
     width: 220,
@@ -297,7 +358,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginTop: 10,
+    marginTop: 18,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 14,
@@ -308,6 +369,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: Colors.primary,
+  },
+  photoDots: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+  },
+  photoDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.border,
+  },
+  photoDotActive: {
+    width: 16,
+    backgroundColor: Colors.primary,
   },
   moistureCard: {
     backgroundColor: Colors.cardBackground,

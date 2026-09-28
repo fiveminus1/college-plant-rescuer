@@ -1,11 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/theme';
 import { useStreaks } from '@/context/StreaksContext';
 import { useUser } from '@/context/UserContext';
 import { getLongestStreak } from '@/helpers/streaks';
-import { Flame, Trophy, TrendingUp, TrendingDown } from 'lucide-react-native';
 import { FriendCard } from '@/components/FriendCard';
 import { PlantBackground } from '@/components/PlantBackground';
 
