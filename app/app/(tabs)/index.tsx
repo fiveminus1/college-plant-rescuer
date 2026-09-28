@@ -1,19 +1,20 @@
-import { CircleCheck, Flower2, Sprout, TriangleAlert } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import * as Progress from 'react-native-progress';
-import { Snackbar } from 'react-native-paper';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { bleService } from '../../ble/BLEService';
-import { usePlants } from '../../context/PlantsContext';
-import { useStreaks } from '@/context/StreaksContext';
-import { Subscription } from 'react-native-ble-plx';
 import { PlantBackground } from '@/components/PlantBackground';
 import { getPlantTypeConfig } from '@/constants/plants';
 import { Colors } from '@/constants/theme';
+import { useStreaks } from '@/context/StreaksContext';
+import * as ImagePicker from 'expo-image-picker';
+import { CircleCheck, ImagePlus, TriangleAlert } from 'lucide-react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Subscription } from 'react-native-ble-plx';
+import { Snackbar } from 'react-native-paper';
+import * as Progress from 'react-native-progress';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { bleService } from '../../ble/BLEService';
+import { usePlants } from '../../context/PlantsContext';
 
 export default function HomeScreen() {
-  const { selectedPlant, updateMoisture } = usePlants();
+  const { selectedPlant, updateMoisture, updatePlantImage } = usePlants();
   const { recordWatering, hasWateredToday } = useStreaks();
   const hasMoistureReading = selectedPlant?.moisture !== null && selectedPlant?.moisture !== undefined;
   const moisture = selectedPlant?.moisture ?? 0;
@@ -21,6 +22,21 @@ export default function HomeScreen() {
     ? getPlantTypeConfig(selectedPlant.type)
     : null;
   const [connectionNoticeVisible, setConnectionNoticeVisible] = useState(true);
+
+  const choosePlantPhoto = async () => {
+    if (!selectedPlant) return;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      updatePlantImage(selectedPlant.id, result.assets[0].uri);
+    }
+  };
 
   const selectedPlantRef = useRef(selectedPlant);
   const hasRecordedTodayRef = useRef(false);
@@ -109,11 +125,34 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.plantStage}>
-            {selectedPlant.type === 'Cactus' ? (
-              <Sprout size={150} color={Colors.primary} strokeWidth={1.5} />
-            ) : (
-              <Flower2 size={150} color={Colors.primary} strokeWidth={1.5} />
-            )}
+            <View style={styles.photoControls}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={selectedPlant.imageUri ? 'View plant photo' : 'Add plant photo'}
+                onPress={choosePlantPhoto}
+                style={styles.photoButton}
+              >
+                {selectedPlant.imageUri ? (
+                  <Image source={{ uri: selectedPlant.imageUri }} style={styles.plantImage} />
+                ) : (
+                  <View style={styles.photoPlaceholder}>
+                    <ImagePlus size={54} color={Colors.primary} strokeWidth={1.5} />
+                    <Text style={styles.photoPlaceholderText}>Add a photo</Text>
+                  </View>
+                )}
+              </Pressable>
+              {selectedPlant.imageUri && (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Select a different plant photo"
+                  onPress={choosePlantPhoto}
+                  style={styles.changePhotoButton}
+                >
+                  <ImagePlus size={15} color={Colors.primary} />
+                  <Text style={styles.changePhotoText}>Select photo</Text>
+                </Pressable>
+              )}
+            </View>
           </View>
 
           <View style={styles.moistureCard}>
@@ -222,6 +261,53 @@ const styles = StyleSheet.create({
     minHeight: 230,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  photoControls: {
+    alignItems: 'center',
+  },
+  plantImage: {
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+  },
+  photoButton: {
+    width: 240,
+    height: 240,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoPlaceholder: {
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.24)',
+  },
+  photoPlaceholderText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.primary,
+  },
+  changePhotoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  changePhotoText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.primary,
   },
   moistureCard: {
     backgroundColor: Colors.cardBackground,
