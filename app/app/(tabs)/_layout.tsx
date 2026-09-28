@@ -1,12 +1,12 @@
+import { HapticTab } from '@/components/haptic-tab';
+import { PlantType } from '@/constants/plants';
+import { Colors } from '@/constants/theme';
+import { usePlants } from '@/context/PlantsContext';
 import { Tabs, useRouter } from 'expo-router';
+import { Leaf, Plus, Sprout, Sun, User, Users } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Colors } from '@/constants/theme';
-import { Users, Sprout, Sun, Leaf, User, Plus } from 'lucide-react-native';
 import { Menu } from 'react-native-paper';
-import { usePlants } from '@/context/PlantsContext';
-import { PlantType } from '@/constants/plants';
-import { HapticTab } from '@/components/haptic-tab';
 import { CreatePlantDialog } from '../../components/CreatePlantDialog';
 
 
@@ -29,7 +29,7 @@ export default function TabLayout() {
         headerShadowVisible: true,
 
         headerLeft: () => (
-          <View style={{ marginLeft: 24 }}>
+          <View>
             <Menu
               key={menuVisible ? 'open' : 'closed'}
               visible={menuVisible}
@@ -81,7 +81,7 @@ export default function TabLayout() {
         headerRight: () => (
           <Pressable
             onPress={() => router.push('/profile')}   
-            style={[styles.topIconButton, styles.profileButton]}
+            style={styles.topIconButton}
           >
             <User size={26} />
           </Pressable>
@@ -95,6 +95,12 @@ export default function TabLayout() {
           shadowOpacity: 0.14,
           shadowRadius: 7,
           elevation: 5,
+        },
+        headerLeftContainerStyle: {
+          paddingLeft: 24,
+        },
+        headerRightContainerStyle: {
+          paddingRight: 24,
         },
         tabBarButton: HapticTab,
         tabBarShowLabel: false,
@@ -164,9 +170,9 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   topIconButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.34)',
@@ -177,10 +183,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.14,
     shadowRadius: 4,
     elevation: 3,
-  },
-  profileButton: {
-    marginLeft: 0,
-    marginRight: 24,
   },
   tabIcon: {
     width: 48,
