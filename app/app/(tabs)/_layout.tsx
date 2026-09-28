@@ -98,9 +98,11 @@ export default function TabLayout() {
         },
         headerLeftContainerStyle: {
           paddingLeft: 24,
+          paddingBottom: 10,
         },
         headerRightContainerStyle: {
           paddingRight: 24,
+          paddingBottom: 10,
         },
         tabBarButton: HapticTab,
         tabBarShowLabel: false,
