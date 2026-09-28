@@ -41,7 +41,8 @@
           }
         }
       ],
-      "react-native-ble-plx"
+      "react-native-ble-plx",
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,
