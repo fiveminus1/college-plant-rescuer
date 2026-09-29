@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
-import { PlantType } from '../constants/plants';
+import { getPlantTypeConfig, PlantType } from '../constants/plants';
 import {
   addPlantImage as savePlantImage,
   getPlantImages,
@@ -9,6 +9,8 @@ import {
   getPlants,
   initializeDatabase,
   insertPlant,
+  deletePlant as removePlant,
+  updatePlant,
   updatePlantMoisture as savePlantMoisture,
 } from '../db/plants';
 
@@ -17,6 +19,11 @@ export interface Plant {
   name: string;
   type: PlantType;
   moisture: number | null;
+  thirsty: number;
+  watered: number;
+  intervalDays: number | null;
+  lastWatered: number | null;
+  lastReadingAt: number | null;
   images: PlantPhoto[];
 }
 
@@ -29,7 +36,10 @@ interface PlantsContextValue {
   plants: Plant[]
   selectedPlant: Plant | null;
   selectPlant: (id: string) => void;
-  addPlant: (name: string, type: PlantType) => Promise<void>;
+  addPlant: (name: string, type: PlantType) => Promise<string | null>;
+  updatePlant: (id: string, values: Partial<Pick<Plant, 'name' | 'intervalDays' | 'thirsty' | 'watered'>>) => Promise<void>;
+  deletePlant: (id: string) => Promise<void>;
+  updateLastWatered: (id: string, timestamp: number) => Promise<void>;
   addPlantImage: (id: string, imageUri: string) => Promise<void>;
   updateMoisture: (id: string, value: number) => Promise<void>;
 }
@@ -37,12 +47,14 @@ interface PlantsContextValue {
 const PlantsContext = createContext<PlantsContextValue>(null!);
 
 const defaultPlants: Plant[] = [
-  { id: "1", name: "Greg", type: "Cactus", moisture: null, images: [] },
-  { id: "2", name: "Gertrude", type: "Succulent", moisture: null, images: [] },
+  { id: "1", name: "Greg", type: "Cactus", moisture: null, thirsty: 40, watered: 70, intervalDays: null, lastWatered: null, lastReadingAt: null, images: [] },
+  { id: "2", name: "Gertrude", type: "Succulent", moisture: null, thirsty: 30, watered: 60, intervalDays: null, lastWatered: null, lastReadingAt: null, images: [] },
 ];
 
 export function PlantsProvider({ children }: { children: ReactNode }) {
   const [plants, setPlants] = useState<Plant[]>(defaultPlants);
+  const [selectedPlantId, setSelectedPlantId] = useState("1");
+  const selectedPlant = plants.find(p => p.id === selectedPlantId) ?? null;
 
   useEffect(() => {
     let isMounted = true;
@@ -56,6 +68,8 @@ export function PlantsProvider({ children }: { children: ReactNode }) {
 
         if (rows.length > 0) {
           loadedPlants = rows.map((row) => {
+            const type = row.type as PlantType;
+            const defaults = getPlantTypeConfig(type);
             const images = imageRows
               .filter((image) => image.plantId === row.id)
               .map((image) => ({ uri: image.uri, addedAt: image.createdAt }));
@@ -63,12 +77,25 @@ export function PlantsProvider({ children }: { children: ReactNode }) {
             return {
               id: row.id,
               name: row.name,
-              type: row.type as PlantType,
+              type,
               moisture: row.moisture,
+              thirsty: row.thirsty ?? defaults.minMoisture,
+              watered: row.watered ?? defaults.maxMoisture,
+              intervalDays: row.intervalDays,
+              lastWatered: row.lastWatered,
+              lastReadingAt: row.lastReadingAt,
               images,
             };
           });
         } else {
+          await Promise.all(defaultPlants.map((plant) => insertPlant({
+            id: plant.id,
+            name: plant.name,
+            type: plant.type,
+            moisture: plant.moisture,
+            thirsty: plant.thirsty,
+            watered: plant.watered,
+          })));
           loadedPlants = defaultPlants;
         }
 
@@ -92,9 +119,6 @@ export function PlantsProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const [selectedPlantId, setSelectedPlantId] = useState("1");
-  const selectedPlant = plants.find(p => p.id === selectedPlantId) ?? null;
-
   function selectPlant(id: string) {
     setSelectedPlantId(id);
   }
@@ -106,25 +130,47 @@ export function PlantsProvider({ children }: { children: ReactNode }) {
       name: name.trim(),
       type,
       moisture: null,
+      thirsty: 0,
+      watered: 100,
+      intervalDays: null,
+      lastWatered: null,
+      lastReadingAt: null,
       images: [],
     };
 
     try {
-      await insertPlant({ id, name: plant.name, type, moisture: null });
+      await insertPlant({ id, name: plant.name, type, moisture: null, thirsty: 0, watered: 100 });
     } catch (error) {
       console.warn('Could not add plant', error);
-      return;
+      return null;
     }
 
     setPlants(prev => [...prev, plant]);
     setSelectedPlantId(id);
+    return id;
   }
+
+  const savePlant = useCallback(async (id: string, values: Partial<Pick<Plant, 'name' | 'intervalDays' | 'thirsty' | 'watered'>>) => {
+    await updatePlant(id, values);
+    setPlants(prev => prev.map(plant => plant.id === id ? { ...plant, ...values } : plant));
+  }, []);
+
+  const deletePlant = useCallback(async (id: string) => {
+    await removePlant(id);
+    setPlants(prev => prev.filter(plant => plant.id !== id));
+    setSelectedPlantId(current => current === id ? (plants.find(plant => plant.id !== id)?.id ?? '') : current);
+  }, [plants, setSelectedPlantId]);
+
+  const updateLastWatered = useCallback(async (id: string, timestamp: number) => {
+    await updatePlant(id, { lastWatered: timestamp });
+    setPlants(prev => prev.map(plant => plant.id === id ? { ...plant, lastWatered: timestamp } : plant));
+  }, []);
 
   const updateMoisture = useCallback((id: string, value: number) => {
     return savePlantMoisture(id, value)
       .then(() => {
         setPlants(prev =>
-          prev.map(p => (p.id === id ? { ...p, moisture: value } : p))
+          prev.map(p => (p.id === id ? { ...p, moisture: value, lastReadingAt: Date.now() } : p))
         );
       })
       .catch((error) => console.warn('Could not update plant moisture', error));
@@ -147,7 +193,7 @@ export function PlantsProvider({ children }: { children: ReactNode }) {
 
   return (
     <PlantsContext.Provider
-      value={{ plants, selectedPlant, selectPlant, addPlant, addPlantImage, updateMoisture }}
+      value={{ plants, selectedPlant, selectPlant, addPlant, updatePlant: savePlant, deletePlant, updateLastWatered, addPlantImage, updateMoisture }}
     >
       {children}
     </PlantsContext.Provider>

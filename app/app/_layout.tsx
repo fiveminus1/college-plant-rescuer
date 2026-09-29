@@ -28,6 +28,8 @@
                     headerBackTitle: 'Home',
                   }}
                 />
+                  <Stack.Screen name="plants" options={{ title: 'Plants' }} />
+                  <Stack.Screen name="plant-setup" options={{ title: 'Plant setup' }} />
                 </Stack>
                 <StatusBar style="auto" />
               </ThemeProvider>

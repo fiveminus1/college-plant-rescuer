@@ -5,6 +5,11 @@ export const plants = sqliteTable('plants', {
   name: text('name').notNull(),
   type: text('type').notNull(),
   moisture: real('moisture'),
+  thirsty: real('thirsty'),
+  watered: real('watered'),
+  intervalDays: integer('interval_days'),
+  lastWatered: integer('last_watered'),
+  lastReadingAt: integer('last_reading_at'),
 });
 
 export const plantImages = sqliteTable('plant_images', {

@@ -13,13 +13,19 @@ export async function initializeDatabase() {
       id TEXT PRIMARY KEY NOT NULL,
       name TEXT NOT NULL,
       type TEXT NOT NULL,
-      moisture REAL
+      moisture REAL,
+      thirsty REAL,
+      watered REAL,
+      interval_days INTEGER,
+      last_watered INTEGER,
+      last_reading_at INTEGER
     );
   `);
+
 }
 
 export function getPlants(): Promise<PlantRow[]> {
-  return database.select().from(plants).orderBy(asc(plants.id)).all();
+  return Promise.resolve(database.select().from(plants).orderBy(asc(plants.id)).all());
 }
 
 export async function insertPlant(plant: PlantInsert) {
@@ -27,6 +33,14 @@ export async function insertPlant(plant: PlantInsert) {
 }
 
 export async function updatePlantMoisture(id: string, moisture: number) {
-  await database.update(plants).set({ moisture }).where(eq(plants.id, id));
+  await database.update(plants).set({ moisture, lastReadingAt: Date.now() }).where(eq(plants.id, id));
+}
+
+export async function updatePlant(id: string, values: Partial<PlantInsert>) {
+  await database.update(plants).set(values).where(eq(plants.id, id));
+}
+
+export async function deletePlant(id: string) {
+  await database.delete(plants).where(eq(plants.id, id));
 }
 

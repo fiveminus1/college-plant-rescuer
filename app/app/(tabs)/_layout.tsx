@@ -68,6 +68,14 @@ export default function TabLayout() {
                 />
               ))}
               <Menu.Item
+                title="Manage plants"
+                leadingIcon={() => <Sprout size={18} color={Colors.icon} />}
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push('/plants');
+                }}
+              />
+              <Menu.Item
                 title="Create plant"
                 leadingIcon={() => <Plus size={18} color={Colors.icon} />}
                 onPress={() => {
@@ -161,8 +169,9 @@ export default function TabLayout() {
       <CreatePlantDialog
         visible={createDialogVisible}
         onDismiss={() => setCreateDialogVisible(false)}
-        onCreate={(name, type: PlantType) => {
-          addPlant(name, type);
+        onCreate={async (name, type: PlantType) => {
+          const id = await addPlant(name, type);
+          if (id) router.push({ pathname: '/plant-setup', params: { id } });
           setCreateDialogVisible(false);
         }}
       />

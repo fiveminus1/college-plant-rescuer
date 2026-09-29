@@ -1,28 +1,36 @@
 import { PlantBackground } from '@/components/PlantBackground';
-import { getPlantTypeConfig } from '@/constants/plants';
 import { Colors } from '@/constants/theme';
 import { useStreaks } from '@/context/StreaksContext';
 import * as ImagePicker from 'expo-image-picker';
 import { CircleCheck, ImagePlus, TriangleAlert } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Subscription } from 'react-native-ble-plx';
 import { Snackbar } from 'react-native-paper';
 import * as Progress from 'react-native-progress';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { bleService } from '../../ble/BLEService';
 import { usePlants } from '../../context/PlantsContext';
+import { getPlantVerdict, PlantVerdict } from '../../helpers/verdict';
+import { useBLESensor } from '../../hooks/useBLESensor';
+
+function formatAge(timestamp: number | null) {
+  if (!timestamp) return 'Never';
+  const minutes = Math.max(1, Math.floor((Date.now() - timestamp) / 60000));
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+  const days = Math.floor(hours / 24);
+  return `${days} day${days === 1 ? '' : 's'} ago`;
+}
 
 export default function HomeScreen() {
-  const { selectedPlant, updateMoisture, addPlantImage } = usePlants();
-  const { recordWatering, hasWateredToday } = useStreaks();
+  const { selectedPlant, updateMoisture, updateLastWatered, addPlantImage } = usePlants();
+  const { recordWatering } = useStreaks();
   const hasMoistureReading = selectedPlant?.moisture !== null && selectedPlant?.moisture !== undefined;
   const moisture = selectedPlant?.moisture ?? 0;
-  const moistureRange = selectedPlant
-    ? getPlantTypeConfig(selectedPlant.type)
-    : null;
+  const moistureRange = selectedPlant ? { minMoisture: selectedPlant.thirsty, maxMoisture: selectedPlant.watered } : null;
   const [connectionNoticeVisible, setConnectionNoticeVisible] = useState(true);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
+  const [previousVerdict, setPreviousVerdict] = useState<PlantVerdict | undefined>();
 
   const images = selectedPlant?.images ?? [];
   const hasImages = images.length > 0;
@@ -42,60 +50,46 @@ export default function HomeScreen() {
     }
   };
 
-  const selectedPlantRef = useRef(selectedPlant);
-  const hasRecordedTodayRef = useRef(false);
-
-  useEffect(() => {
-    selectedPlantRef.current = selectedPlant;
-  }, [selectedPlant]);
-
-  useEffect(() => {
-    setConnectionNoticeVisible(true);
-  }, [selectedPlant?.id]);
-
-  useEffect(() => {
-    setActivePhotoIndex(0);
-  }, [selectedPlant?.id]);
-
-  useEffect(() => {
-    let subscription: Subscription | undefined;
-
-    bleService.scanForDevice(async (device) => {
-      await bleService.connect(device);
-
-      subscription = bleService.subscribeToMoisture((percent) => {
-        const currentPlantRef = selectedPlantRef.current;
-        
-        if(currentPlantRef)
-          updateMoisture(currentPlantRef.id, percent);
-      });
-    });
-
-    return () => {
-      subscription?.remove?.();
-      bleService.destroy();
-    };
-  }, [updateMoisture]);
-
-  useEffect(() => {
-    if(!selectedPlant) return;
-
-    const alreadyWatered = hasWateredToday(selectedPlant.id);
-
-    if (
-      moistureRange &&
-      hasMoistureReading &&
-      moisture >= moistureRange.maxMoisture &&
-      !alreadyWatered &&
-      !hasRecordedTodayRef.current
-    ) {
-      recordWatering(selectedPlant.id);
-      hasRecordedTodayRef.current = true;
+  const saveReading = useCallback((percent: number) => {
+    if (selectedPlant) {
+      setPreviousVerdict(getPlantVerdict({
+        pct: percent,
+        thirsty: selectedPlant.thirsty,
+        watered: selectedPlant.watered,
+        lastWatered: selectedPlant.lastWatered,
+        intervalDays: selectedPlant.intervalDays,
+        previousVerdict,
+      }));
+      updateMoisture(selectedPlant.id, percent);
     }
+  }, [previousVerdict, selectedPlant, updateMoisture]);
 
-    if(!alreadyWatered)
-      hasRecordedTodayRef.current = false;
-  }, [hasMoistureReading, moisture, moistureRange, selectedPlant, recordWatering, hasWateredToday]);
+  const saveConfirmedWatering = useCallback(() => {
+    if (!selectedPlant) return;
+    const timestamp = Date.now();
+    setPreviousVerdict('Just watered');
+    updateLastWatered(selectedPlant.id, timestamp);
+    recordWatering(selectedPlant.id);
+  }, [recordWatering, selectedPlant, updateLastWatered]);
+
+  const { status, error, warmingUp } = useBLESensor({
+    plant: selectedPlant,
+    onReading: saveReading,
+    onWaterConfirmed: saveConfirmedWatering,
+  });
+
+  const verdict = hasMoistureReading && moistureRange
+    ? getPlantVerdict({
+        pct: moisture,
+        thirsty: moistureRange.minMoisture,
+        watered: moistureRange.maxMoisture,
+        lastWatered: selectedPlant.lastWatered,
+        intervalDays: selectedPlant.intervalDays,
+        previousVerdict,
+      })
+    : null;
+
+  const handleWatered = () => saveConfirmedWatering();
 
   if(!selectedPlant){
     return (
@@ -117,7 +111,7 @@ export default function HomeScreen() {
             <Text style={styles.plantType}>{selectedPlant.type}</Text>
             {hasMoistureReading ? (
               <View style={styles.statusRow}>
-                {moisture < moistureRange!.minMoisture ? (
+                {verdict === 'Water now' ? (
                   <TriangleAlert size={15} color={Colors.accent} />
                 ) : (
                   <CircleCheck size={15} color={Colors.primary} />
@@ -126,7 +120,7 @@ export default function HomeScreen() {
                   styles.statusText,
                   moisture < moistureRange!.minMoisture && styles.statusTextWarning,
                 ]}>
-                  {moisture < moistureRange!.minMoisture ? 'Needs water' : 'In range'}
+                  {warmingUp ? 'Reading...' : verdict ?? 'Reading...'}
                 </Text>
               </View>
             ) : null}
@@ -205,7 +199,7 @@ export default function HomeScreen() {
               <View>
                 <Text style={styles.cardLabel}>Moisture</Text>
                 <Text style={styles.moistureValue}>
-                  {hasMoistureReading ? `${moisture}%` : '--'}
+                  {warmingUp ? 'Reading...' : hasMoistureReading ? `${moisture}%` : '--'}
                 </Text>
               </View>
               <View style={styles.targetCopy}>
@@ -217,7 +211,7 @@ export default function HomeScreen() {
             </View>
 
             <Progress.Bar
-              progress={hasMoistureReading ? moisture / 100 : 0}
+              progress={hasMoistureReading ? Math.max(0, Math.min(1, (moisture - selectedPlant.thirsty) / Math.max(1, selectedPlant.watered - selectedPlant.thirsty))) : 0}
               width={null}
               height={10}
               borderRadius={5}
@@ -234,29 +228,26 @@ export default function HomeScreen() {
 
             <View style={styles.cardFooter}>
               <Text style={styles.helperText}>
-                {!hasMoistureReading
-                  ? 'Waiting for the sensor to report'
-                  : moisture < moistureRange!.minMoisture
-                    ? 'Water soon to keep your plant thriving'
-                    : 'Your plant is comfortable right now'}
+                {status === 'connected' ? `Live sensor${verdict ? `: ${verdict}` : ''}` : `${status === 'disconnected' ? 'Disconnected' : 'Connecting'} - last reading ${formatAge(selectedPlant.lastReadingAt)}`}
               </Text>
-              {hasWateredToday(selectedPlant.id) && (
-                <Text style={styles.wateredText}>Watered today</Text>
-              )}
+              <Text style={styles.wateredText}>Last watered: {formatAge(selectedPlant.lastWatered)}</Text>
             </View>
+            <Pressable accessibilityRole="button" onPress={handleWatered} style={styles.waterButton}>
+              <Text style={styles.waterButtonText}>I watered</Text>
+            </Pressable>
           </View>
         </View>
 
         <Snackbar
-          visible={!hasMoistureReading && connectionNoticeVisible}
+          visible={(!hasMoistureReading || !!error) && connectionNoticeVisible}
           onDismiss={() => setConnectionNoticeVisible(false)}
-          duration={Snackbar.DURATION_INDEFINITE}
+          duration={0}
           action={{
             label: 'Dismiss',
             onPress: () => setConnectionNoticeVisible(false),
           }}
         >
-          Waiting for Bluetooth connection to sensor...
+          {error ?? 'Waiting for Bluetooth connection to sensor...'}
         </Snackbar>
 
       </SafeAreaView>
@@ -436,5 +427,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#438A51',
+  },
+  waterButton: {
+    alignSelf: 'flex-start',
+    marginTop: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: Colors.primary,
+  },
+  waterButtonText: {
+    fontWeight: '700',
+    color: Colors.text,
   },
 })
